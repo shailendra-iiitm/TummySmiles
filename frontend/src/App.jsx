@@ -1,19 +1,19 @@
-import { Routes, Route } from 'react-router-dom';
-import PhoneLogin from './components/PhoneLogin';
-import DonorDashboard from './pages/DonorDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import AgentDashboard from './pages/AgentDashboard';
-import NotFound from './pages/NotFound';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Login from './pages/Login';
+import DonorDashboard from './pages/donor/Dashboard';
+import AgentDashboard from './pages/agent/Dashboard';
+import AdminDashboard from './pages/admin/Dashboard';
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<PhoneLogin />} />
-      <Route path="/donor" element={<DonorDashboard />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/agent" element={<AgentDashboard />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/donor/dashboard" element={<DonorDashboard />} />
+        <Route path="/agent/dashboard" element={<AgentDashboard />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
