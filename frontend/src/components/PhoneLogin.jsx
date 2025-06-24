@@ -1,10 +1,7 @@
 // src/components/PhoneLogin.jsx
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
-import { firebaseApp } from '../firebase';
-import axios from 'axios';
-
-const auth = getAuth(firebaseApp);
+import { firebaseApp } from '../firebase'; // your config file
 
 const PhoneLogin = () => {
   const [phone, setPhone] = useState('');
@@ -12,24 +9,29 @@ const PhoneLogin = () => {
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [step, setStep] = useState('phone');
 
-const setupRecaptcha = () => {
-  window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
-    size: 'invisible'
-  }, auth);
-};
+  const auth = getAuth(firebaseApp); // ✅ must be INSIDE the component
 
-
+  const setupRecaptcha = () => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+        callback: (response) => {
+          console.log("reCAPTCHA solved");
+        }
+      });
+    }
+  };
 
   const sendOtp = async () => {
-    setupRecaptcha();
-    const appVerifier = window.recaptchaVerifier;
-
     try {
+      setupRecaptcha();
+      const appVerifier = window.recaptchaVerifier;
       const result = await signInWithPhoneNumber(auth, phone, appVerifier);
       setConfirmationResult(result);
       setStep('otp');
     } catch (err) {
-      alert(err.message);
+      console.error(err);
+      alert("OTP sending failed");
     }
   };
 
@@ -38,62 +40,56 @@ const setupRecaptcha = () => {
       const result = await confirmationResult.confirm(otp);
       const idToken = await result.user.getIdToken();
 
-      const res = await axios.post('http://localhost:5000/api/auth/firebase-login', { idToken });
-      const { token, user } = res.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('role', user.role);
-      
-      // Redirect to dashboard based on role
-      if (user.role === 'admin') {
-        window.location.href = '/admin';
-      } else if (user.role === 'agent') {
-        window.location.href = '/agent';
+      const res = await fetch("http://localhost:5000/api/auth/firebase-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+
+      const data = await res.json();
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.user.role);
+
+      if (data.user.role === 'admin') {
+        window.location.href = "/admin";
+      } else if (data.user.role === 'agent') {
+        window.location.href = "/agent";
       } else {
-        window.location.href = '/donor';
+        window.location.href = "/donor";
       }
+
     } catch (err) {
-      alert(err.message);
+      alert("Incorrect OTP");
     }
   };
 
-  const logout = () => {
-  localStorage.clear();
-  window.location.href = "/";
-  };
-
-
-
   return (
-    <div>
+    <div className="p-4">
       {step === 'phone' && (
-        <div>
+        <>
           <input
             type="tel"
+            placeholder="+91XXXXXXXXXX"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="Enter Phone Number"
             className="border p-2"
           />
           <button onClick={sendOtp} className="ml-2 bg-blue-500 text-white px-4 py-2">Send OTP</button>
-        </div>
+        </>
       )}
 
       {step === 'otp' && (
-        <div>
+        <>
           <input
             type="text"
+            placeholder="Enter OTP"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
-            placeholder="Enter OTP"
             className="border p-2"
           />
           <button onClick={verifyOtp} className="ml-2 bg-green-500 text-white px-4 py-2">Verify OTP</button>
-        </div>
+        </>
       )}
-
-      <button onClick={logout} className="mt-4 bg-red-500 text-white px-4 py-2">Logout</button>
-      
 
       <div id="recaptcha-container"></div>
     </div>
