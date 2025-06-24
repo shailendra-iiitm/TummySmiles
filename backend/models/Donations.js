@@ -5,6 +5,14 @@ const donationSchema = new mongoose.Schema({
   foodType: String,
   quantity: String,
   pickupAddress: String,
+  pickupLocation: {
+  lat: { type: Number },
+  lng: { type: Number }
+  },
+  dropLocation: {
+  lat: { type: Number },
+  lng: { type: Number }
+  },
   status: { type: String, enum: ['pending', 'accepted', 'rejected', 'collected','agent_rejected', 'not_found','agent_accepted'], default: 'pending' },
   agent: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
 }, { timestamps: true });
