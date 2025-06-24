@@ -16,7 +16,8 @@ const userSchema = new mongoose.Schema({
     required: function () {
       return this.role === 'donor' || this.role === 'agent';
     }
-  }
+  },
+  isBlocked: { type: Boolean, default: false}
 }, { timestamps: true }); // ✅ timestamps passed here
 
 module.exports = mongoose.model('User', userSchema);
