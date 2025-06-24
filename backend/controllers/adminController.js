@@ -42,17 +42,39 @@ exports.updateDonationStatus = async (req, res) => {
   res.json(donation);
 };
 
-// To Assign agent to donation
+// To assign agent and random drop location to a donation
 exports.assignAgent = async (req, res) => {
   const { agentId } = req.body;
-  const agent = await User.findById(agentId);
-  if (!agent || agent.role !== 'agent') return res.status(400).json({ msg: "Invalid agent" });
 
-  const donation = await Donation.findByIdAndUpdate(req.params.id, { agent: agentId }, { new: true });
+  // Predefined drop points (e.g., warehouses)
+  const dropPoints = [
+    { lat: 28.70, lng: 77.10 },
+    { lat: 28.68, lng: 77.12 },
+    { lat: 28.66, lng: 77.15 }
+  ];
+  const randomDrop = dropPoints[Math.floor(Math.random() * dropPoints.length)];
+
+  // Validate agent
+  const agent = await User.findById(agentId);
+  if (!agent || agent.role !== 'agent') {
+    return res.status(400).json({ msg: "Invalid agent" });
+  }
+
+  // Update donation with agent and random drop location
+  const donation = await Donation.findByIdAndUpdate(
+    req.params.id,
+    {
+      agent: agentId,
+      dropLocation: randomDrop
+    },
+    { new: true }
+  );
+
   if (!donation) return res.status(404).json({ msg: "Donation not found" });
 
-  res.json({ msg: "Agent assigned", donation });
+  res.json({ msg: "Agent assigned with auto-drop location", donation });
 };
+
 
 //To Delete a donation
 exports.deleteDonation = async (req, res) => {

@@ -9,7 +9,11 @@ exports.createDonation = async (req, res) => {
       donor: req.user.id,
       foodType,
       quantity,
-      pickupAddress
+      pickupAddress,
+        pickupLocation: {
+            lat: req.body.pickupLocation?.lat || null,
+            lng: req.body.pickupLocation?.lng || null
+        },
     });
     await donation.save();
     res.status(201).json(donation);
