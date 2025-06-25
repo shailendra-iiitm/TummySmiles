@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 
+
 const MyDonations = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const MyDonations = () => {
 
   const fetchDonations = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/donor/mine', {
+      const res = await axios.get('http://localhost:5000/api/donor/mine', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDonations(res.data);
@@ -22,7 +23,7 @@ const MyDonations = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/donor/donation/${id}`, {
+      await axios.delete(`http://localhost:5000/api/donor/donation/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDonations(prev => prev.filter(d => d._id !== id));

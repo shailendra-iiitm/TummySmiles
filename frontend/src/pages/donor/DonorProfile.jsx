@@ -15,7 +15,7 @@ const DonorProfile = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/donor/profile', {
+      const res = await axios.get('http://localhost:5000/api/donor/profile', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFormData({
@@ -38,7 +38,7 @@ const DonorProfile = () => {
     setSuccess('');
 
     try {
-      await axios.patch('http://localhost:5000/donor/profile', formData, {
+      await axios.patch('http://localhost:5000/api/donor/profile', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSuccess('Profile updated successfully!');

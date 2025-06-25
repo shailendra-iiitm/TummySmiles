@@ -42,7 +42,7 @@ const CreateDonation = () => {
     setSuccess('');
 
     try {
-      await axios.post('http://localhost:5000/donor/create', formData, {
+      await axios.post('http://localhost:5000/api/donor/create', formData, {
         headers: {
           Authorization: `Bearer ${token}`
         }

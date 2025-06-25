@@ -1,9 +1,21 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const DonorDashboard = () => {
+  const { logout, user } = useAuth(); // Use the useAuth hook properly
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <h1 className="text-2xl font-bold mb-6">Welcome, Donor 👋</h1>
+      {/* Header with logout button */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Welcome, {user?.name || 'Donor'} 👋</h1>
+        <button 
+          onClick={logout} 
+          className="text-red-600 hover:text-red-800 bg-red-100 px-4 py-2 rounded"
+        >
+          Logout
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Link
