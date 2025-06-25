@@ -124,12 +124,8 @@ MONGO_URI=your_mongodb_connection_string
 ---
 
 ## 📸 Screenshots
-
-*(Add screenshots of donor/agent/admin dashboards here once frontend is ready)*
-
 ---
 
 ## 🧑‍💻 Contributors
 
 - 👨‍💻 Shailendra Shukla
-- 🧠 ChatGPT (backend design + logic)
