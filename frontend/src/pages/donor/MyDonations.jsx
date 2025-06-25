@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useAuth } from '../../contexts/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 
 const MyDonations = () => {
   const { token } = useAuth();
@@ -13,7 +13,7 @@ const MyDonations = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDonations(res.data);
-    } catch (err) {
+    } catch {
       setError('Failed to fetch donations');
     }
   };

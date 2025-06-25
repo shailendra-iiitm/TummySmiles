@@ -1,4 +1,4 @@
-const Donation = require('../models/Donation');
+const Donation = require('../models/Donations');
 const User = require('../models/User');
 
 // Create new donation

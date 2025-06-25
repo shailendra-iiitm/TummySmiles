@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { AuthContext } from './AuthContext';
+import { AuthContext } from './createContext';
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));

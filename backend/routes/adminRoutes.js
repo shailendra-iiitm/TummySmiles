@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-const { authenticate } = require('../middleware/authenticate');
-const verifyRole = require('../middleware/verifyRole');
+const { authenticate } = require('../middlewares/authenticate'); // Fixed path
+const verifyRole = require('../middlewares/verifyeRole'); // Fixed filename
 
 // Middleware stack
 const adminOnly = [authenticate, verifyRole('admin')];

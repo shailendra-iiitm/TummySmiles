@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const { setToken } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    phone: '',
+    identifier: '',
     password: ''
   });
 
@@ -23,7 +23,7 @@ const Login = () => {
     setError('');
 
     try {
-      const res = await axios.post('http://localhost:5000/login', formData);
+      const res = await axios.post('http://localhost:5000/api/auth/login', formData);
       const token = res.data.token;
 
       setToken(token);
@@ -59,9 +59,9 @@ const Login = () => {
 
         <input
           type="text"
-          name="phone"
-          placeholder="Phone number"
-          value={formData.phone}
+          name="identifier"
+          placeholder="Phone number/Email"
+          value={formData.identifier}
           onChange={handleChange}
           className="w-full p-2 mb-4 border border-gray-300 rounded"
           required

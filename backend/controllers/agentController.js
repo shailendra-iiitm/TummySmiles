@@ -1,4 +1,4 @@
-const Donation = require('../models/Donation');
+const Donation = require('../models/Donations'); // Fixed: use Donations.js (capital D)
 const User = require('../models/User');
 
 // Get assigned donations (accepted, not yet collected)
@@ -96,3 +96,28 @@ exports.getProfile = async (req, res) => {
         res.status(500).json({ msg: "Failed to fetch profile", error: err.message });
     }
 }
+// PATCH /agent/location
+exports.updateAgentLocation = async (req, res) => {
+  const { lat, lng } = req.body;
+
+  if (!lat || !lng) {
+    return res.status(400).json({ msg: "Latitude and longitude are required" });
+  }
+
+  const updated = await Donation.findOneAndUpdate(
+    {
+      agent: req.user.id,
+      status: { $in: ['accepted', 'agent_accepted'] }
+    },
+    {
+      agentLocation: { lat, lng }
+    },
+    { new: true }
+  );
+
+  if (!updated) {
+    return res.status(404).json({ msg: "No active donation assigned to this agent" });
+  }
+
+  res.json({ msg: "Agent location updated", agentLocation: updated.agentLocation });
+};

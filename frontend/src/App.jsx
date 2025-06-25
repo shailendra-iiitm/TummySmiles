@@ -3,16 +3,16 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 
 // Donor
-import DonorDashboard from './pages/donor/DonorDashboard';
+import DonorDashboard from './pages/donor/dashboard';
 import CreateDonation from './pages/donor/CreateDonation';
 import MyDonations from './pages/donor/MyDonations';
 import DonorProfile from './pages/donor/DonorProfile';
 
 // Agent
-import AgentDashboard from './pages/agent/Dashboard';
+// import AgentDashboard from './pages/agent/Dashboard';
 
 // Admin
-import AdminDashboard from './pages/admin/Dashboard';
+// import AdminDashboard from './pages/admin/Dashboard';
 
 function App() {
   return (
@@ -29,15 +29,16 @@ function App() {
           <Route path="/donor/profile" element={<DonorProfile />} />
         </Route>
 
-        {/*  Agent Protected Route */}
+        {/* Agent and Admin routes commented out for now
         <Route element={<ProtectedRoute allowedRoles={['agent']} />}>
           <Route path="/agent/dashboard" element={<AgentDashboard />} />
         </Route>
 
-        {/*  Admin Protected Route */}
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Route>
+        */}
+        
       </Routes>
     </BrowserRouter>
   );

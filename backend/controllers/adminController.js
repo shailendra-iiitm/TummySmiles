@@ -1,4 +1,4 @@
-const Donation = require('../models/Donation');
+const Donation = require('../models/Donations'); // Fixed: use Donations.js (capital D)
 const User = require('../models/User');
 
 // 1. --- Donation Management ---
