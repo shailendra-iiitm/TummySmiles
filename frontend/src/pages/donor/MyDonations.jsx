@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 
 const MyDonations = () => {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [donations, setDonations] = useState([]);
   const [error, setError] = useState('');
 
@@ -54,13 +56,12 @@ const MyDonations = () => {
                 <p><strong>Status:</strong> {d.status}</p>
               </div>
               <div className="mt-2 md:mt-0 space-x-2">
-                {/* Future Edit Route */}
-                {/* <button
+                <button
                   onClick={() => navigate(`/donor/edit/${d._id}`)}
-                  className="bg-yellow-500 text-white px-3 py-1 rounded"
+                  className="bg-yellow-500 text-white px-2 py-1 rounded mr-2 hover:bg-yellow-600"
                 >
                   Edit
-                </button> */}
+                </button>
 
                 <button
                   onClick={() => handleDelete(d._id)}
