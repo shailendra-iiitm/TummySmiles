@@ -1,9 +1,28 @@
 // src/services/api.js
 import axios from 'axios';
 
+// Dynamic API base URL for development and production
+const getApiBaseUrl = () => {
+  // Check if we're in development or production
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Fallback for development
+  if (import.meta.env.DEV) {
+    return 'http://localhost:5000/api';
+  }
+  
+  // Production fallback - replace with your Render URL
+  return 'https://your-backend-app.onrender.com/api';
+};
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: getApiBaseUrl(),
+  timeout: 10000, // 10 second timeout for production
 });
+
+console.log('API Base URL:', getApiBaseUrl());
 
 // Add a request interceptor to always get the latest token
 api.interceptors.request.use(

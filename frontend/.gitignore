@@ -1,5 +1,8 @@
 # Logs
 .env
+.env.local
+.env.production
+.env.development
 logs
 *.log
 npm-debug.log*
@@ -23,3 +26,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Testing and backup files
+*_backup.*
+*_new.*
+*_temp.*
+temp_*
+*.pdf
+restart-dev.bat
+
+# Deployment
+.vercel

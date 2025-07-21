@@ -232,61 +232,115 @@ const AdminDashboard = () => {
         {/* ----------------- Donations Tab ----------------- */}
         {activeTab === "donations" && (
           <>
-            <div className="flex gap-2 items-center mt-4">
-              <label>Filter by status:</label>
+            <div className="flex gap-4 items-center mb-6">
+              <label className="text-gray-700 font-semibold">Filter by status:</label>
               <select
-                className="border px-2 py-1"
+                className="border-2 border-gray-300 px-4 py-2 rounded-lg focus:border-orange-500 focus:outline-none bg-white shadow-sm"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <option value="all">All</option>
-                <option value="pending">Pending</option>
-                <option value="accepted">Accepted</option>
-                <option value="agent_rejected">Agent Rejected</option>
-                <option value="not_found">Not Found</option>
-                <option value="rejected">Rejected</option>
-                <option value="collected">Collected</option>
+                <option value="all">🔍 All Donations</option>
+                <option value="pending">⏳ Pending</option>
+                <option value="accepted">✅ Accepted</option>
+                <option value="agent_rejected">❌ Agent Rejected</option>
+                <option value="not_found">🔍 Not Found</option>
+                <option value="rejected">❌ Rejected</option>
+                <option value="collected">📦 Collected</option>
+                <option value="delivered">🎉 Delivered</option>
               </select>
             </div>
 
-            <div className="space-y-4 mt-4">
+            <div className="grid gap-6">
               {donations.length === 0 ? (
-                <p>No donations found</p>
+                <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+                  <div className="text-6xl mb-4">🍽️</div>
+                  <h3 className="text-xl font-semibold text-gray-700 mb-2">No donations found</h3>
+                  <p className="text-gray-500">Try adjusting your filter or check back later</p>
+                </div>
               ) : (
                 donations.map((d) => (
                   <div
                     key={d._id}
-                    className="border rounded p-4 shadow space-y-1"
+                    className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 border-orange-500"
                   >
-                    <h3 className="font-bold">{d.foodType}</h3>
-                    <p>Quantity: {d.quantity}</p>
-                    <p>Status: <span className="font-semibold">{d.status}</span></p>
-                    <p>Donor: {d.donor?.name}</p>
-                    {d.agent && <p>Agent: {d.agent?.name}</p>}
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <span className="text-2xl">🍽️</span>
+                            <h3 className="text-xl font-bold text-gray-800">{d.foodType}</h3>
+                            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                              d.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              d.status === 'accepted' ? 'bg-blue-100 text-blue-800' :
+                              d.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                              d.status === 'collected' ? 'bg-teal-100 text-teal-800' :
+                              d.status === 'rejected' || d.status === 'agent_rejected' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {d.status.replace('_', ' ').toUpperCase()}
+                            </span>
+                          </div>
+                          
+                          <div className="grid md:grid-cols-2 gap-4 text-sm">
+                            <div className="space-y-2">
+                              <p className="flex items-center">
+                                <span className="font-semibold text-gray-600 w-20">Quantity:</span>
+                                <span className="text-gray-800">{d.quantity}</span>
+                              </p>
+                              <p className="flex items-center">
+                                <span className="font-semibold text-gray-600 w-20">Donor:</span>
+                                <span className="text-gray-800">{d.donor?.name}</span>
+                              </p>
+                              {d.agent && (
+                                <p className="flex items-center">
+                                  <span className="font-semibold text-gray-600 w-20">Agent:</span>
+                                  <span className="text-gray-800">{d.agent?.name}</span>
+                                </p>
+                              )}
+                            </div>
+                            <div className="space-y-2">
+                              <p className="flex items-center">
+                                <span className="font-semibold text-gray-600 w-24">Created:</span>
+                                <span className="text-gray-800">{new Date(d.createdAt).toLocaleDateString()}</span>
+                              </p>
+                              {d.pickupAddress && (
+                                <p className="flex items-start">
+                                  <span className="font-semibold text-gray-600 w-24 mt-1">📍 Address:</span>
+                                  <span className="text-gray-800 text-xs">{d.pickupAddress}</span>
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {d.status === "pending" && (
-                        <>
-                          <button
-                            onClick={() => updateStatus(d._id, "accepted")}
-                            className="bg-green-600 text-white px-3 py-1 rounded"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            onClick={() => updateStatus(d._id, "rejected")}
-                            className="bg-red-600 text-white px-3 py-1 rounded"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-                      <button
-                        onClick={() => deleteDonation(d._id)}
-                        className="bg-gray-600 text-white px-3 py-1 rounded"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+                        {d.status === "pending" && (
+                          <>
+                            <button
+                              onClick={() => updateStatus(d._id, "accepted")}
+                              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2"
+                            >
+                              <span>✅</span>
+                              <span>Accept</span>
+                            </button>
+                            <button
+                              onClick={() => updateStatus(d._id, "rejected")}
+                              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2"
+                            >
+                              <span>❌</span>
+                              <span>Reject</span>
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => deleteDonation(d._id)}
+                          className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors flex items-center space-x-2"
+                        >
+                          <span>🗑️</span>
+                          <span>Delete</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))

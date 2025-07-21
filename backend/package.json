@@ -1,13 +1,19 @@
 {
-  "name": "backend",
+  "name": "tummy-smiles-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Food donation platform backend API",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "build": "echo 'No build step required for Node.js backend'",
+    "postinstall": "echo 'Backend installation complete'"
   },
-  "keywords": [],
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": ["food-donation", "express", "mongodb", "api"],
   "author": "",
   "license": "ISC",
   "dependencies": {
