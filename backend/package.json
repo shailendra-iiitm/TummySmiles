@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "build": "echo 'No build step required for Node.js backend'",
-    "postinstall": "echo 'Backend installation complete'"
+    "build": "npm install && echo 'Backend dependencies installed successfully'"
   },
   "engines": {
     "node": ">=16.0.0",

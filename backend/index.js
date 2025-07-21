@@ -17,12 +17,14 @@ const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   process.env.FRONTEND_URL_2 || 'http://localhost:5174',
   'http://localhost:3000', // Additional local dev port
+  'https://tummy-smiles-fq0lm3w5h-shailendra-shukla.vercel.app', // Your current Vercel deployment
 ];
 
 // Add production frontend URLs if in production
 if (process.env.NODE_ENV === 'production') {
   // Add your Vercel domain here when you deploy
-  allowedOrigins.push('https://your-app-name.vercel.app');
+  allowedOrigins.push('https://tummy-smiles-fq0lm3w5h-shailendra-shukla.vercel.app');
+  allowedOrigins.push('https://tummysmiles.vercel.app'); // If you get a custom domain
 }
 
 app.use(cors({
