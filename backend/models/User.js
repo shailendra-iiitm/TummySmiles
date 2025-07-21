@@ -17,6 +17,28 @@ const userSchema = new mongoose.Schema({
       return this.role === 'donor' || this.role === 'agent';
     }
   },
+  location: {
+    lat: { type: Number },
+    lng: { type: Number },
+    address: { type: String }
+  },
+  // Agent-specific fields
+  agentStatus: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: function() {
+      return this.role === 'agent' ? 'inactive' : undefined;
+    }
+  },
+  workingHours: [{
+    date: { type: Date, default: Date.now },
+    startTime: { type: Date },
+    endTime: { type: Date },
+    totalHours: { type: Number, default: 0 },
+    status: { type: String, enum: ['working', 'break', 'finished'], default: 'working' }
+  }],
+  totalWorkingTime: { type: Number, default: 0 }, // in minutes
+  lastActiveTime: { type: Date },
   isBlocked: { type: Boolean, default: false}
 }, { timestamps: true }); // ✅ timestamps passed here
 

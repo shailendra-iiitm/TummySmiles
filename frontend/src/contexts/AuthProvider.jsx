@@ -10,16 +10,18 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
+        
         // Check if token is expired
         if (decoded.exp * 1000 < Date.now()) {
           logout();
           return;
         }
         setUser(decoded);
-      } catch (error) {
-        console.error('Invalid token:', error);
+      } catch {
         logout();
       }
+    } else {
+      setUser(null);
     }
   }, [token]);
 
@@ -29,8 +31,20 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const login = (tokenValue) => {
+    localStorage.setItem('token', tokenValue);
+    setToken(tokenValue);
+    try {
+      const decoded = jwtDecode(tokenValue);
+      setUser(decoded);
+    } catch (error) {
+      console.error('Invalid token:', error);
+      logout();
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ token, user, setToken, logout }}>
+    <AuthContext.Provider value={{ token, user, setToken, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 
 const EditDonation = () => {
-  const { token } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -20,21 +18,20 @@ const EditDonation = () => {
   useEffect(() => {
     const fetchDonation = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/donor/donation/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get(`/donor/donation/${id}`);
         setFormData({
           foodType: res.data.foodType || '',
           quantity: res.data.quantity || '',
           pickupAddress: res.data.pickupAddress || ''
         });
-      } catch {
+      } catch (error) {
+        console.error('Failed to fetch donation:', error);
         setError('Failed to fetch donation');
       }
     };
 
     fetchDonation();
-  }, [id, token]);
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,12 +41,11 @@ const EditDonation = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.patch(`http://localhost:5000/api/donor/donation/${id}`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.patch(`/donor/donation/${id}`, formData);
       setSuccess('Donation updated successfully');
       setTimeout(() => navigate('/donor/my-donations'), 1500);
-    } catch {
+    } catch (error) {
+      console.error('Failed to update donation:', error);
       setError('Failed to update donation');
     }
   };

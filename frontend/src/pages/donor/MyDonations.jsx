@@ -1,40 +1,35 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 
 
 const MyDonations = () => {
-  const { token } = useAuth();
   const navigate = useNavigate();
   const [donations, setDonations] = useState([]);
   const [error, setError] = useState('');
 
-  const fetchDonations = async () => {
+  const fetchDonations = useCallback(async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/donor/mine', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/donor/mine');
       setDonations(res.data);
-    } catch {
+    } catch (error) {
+      console.error('Failed to fetch donations:', error);
       setError('Failed to fetch donations');
     }
-  };
+  }, []);
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/donor/donation/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/donor/donation/${id}`);
       setDonations(prev => prev.filter(d => d._id !== id));
-    } catch {
+    } catch (error) {
       alert('Failed to delete donation');
     }
   };
 
   useEffect(() => {
     fetchDonations();
-  }, []);
+  }, [fetchDonations]);
 
   return (
     <div className="min-h-screen p-6 bg-white">

@@ -1,5 +1,6 @@
 const Donation = require('../models/Donations'); // Fixed: use Donations.js (capital D)
 const User = require('../models/User');
+const { findNearestAgents } = require('../utils/distanceCalculator');
 
 // 1. --- Donation Management ---
 
@@ -60,12 +61,13 @@ exports.assignAgent = async (req, res) => {
     return res.status(400).json({ msg: "Invalid agent" });
   }
 
-  // Update donation with agent and random drop location
+  // Update donation with agent, random drop location, and status
   const donation = await Donation.findByIdAndUpdate(
     req.params.id,
     {
       agent: agentId,
-      dropLocation: randomDrop
+      dropLocation: randomDrop,
+      status: 'accepted'
     },
     { new: true }
   );
@@ -86,27 +88,229 @@ exports.deleteDonation = async (req, res) => {
 // 2. --- Stats & Reports ---
 
 exports.getDonationStats = async (req, res) => {
-  const [total, pending, accepted, rejected, collected] = await Promise.all([
-    Donation.countDocuments(),
-    Donation.countDocuments({ status: 'pending' }),
-    Donation.countDocuments({ status: 'accepted' }),
-    Donation.countDocuments({ status: 'rejected' }),
-    Donation.countDocuments({ status: 'collected' })
-  ]);
+  try {
+    // Basic donation counts
+    const totalDonations = await Donation.countDocuments();
+    const pendingDonations = await Donation.countDocuments({ status: 'pending' });
+    const acceptedDonations = await Donation.countDocuments({ status: 'accepted' });
+    const agentAcceptedDonations = await Donation.countDocuments({ status: 'agent_accepted' });
+    const completedDonations = await Donation.countDocuments({ status: 'delivered' });
+    const rejectedDonations = await Donation.countDocuments({ status: 'rejected' });
+    const agentRejectedDonations = await Donation.countDocuments({ status: 'agent_rejected' });
+    const collectedDonations = await Donation.countDocuments({ status: 'collected' });
+    const notFoundDonations = await Donation.countDocuments({ status: 'not_found' });
 
-  res.json({ total, pending, accepted, rejected, collected });
+    // Combined status groups
+    const assignedDonations = agentAcceptedDonations + collectedDonations;
+    const totalRejectedDonations = rejectedDonations + agentRejectedDonations + notFoundDonations;
+
+    // User counts
+    const totalUsers = await User.countDocuments();
+    const totalDonors = await User.countDocuments({ role: 'donor' });
+    const totalAgents = await User.countDocuments({ role: 'agent' });
+    const activeAgents = await User.countDocuments({ 
+      role: 'agent', 
+      agentStatus: 'active' 
+    });
+    const blockedUsers = await User.countDocuments({ isBlocked: true });
+
+    // Time-based stats
+    const today = new Date();
+    const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const todayDonations = await Donation.countDocuments({
+      createdAt: { $gte: new Date(today.toDateString()) }
+    });
+    
+    const weeklyDonations = await Donation.countDocuments({
+      createdAt: { $gte: thisWeek }
+    });
+    
+    const monthlyDonations = await Donation.countDocuments({
+      createdAt: { $gte: thisMonth }
+    });
+
+    // Agent performance stats
+    const agentStats = await User.aggregate([
+      { $match: { role: 'agent' } },
+      {
+        $project: {
+          name: 1,
+          agentStatus: 1,
+          totalWorkingTime: 1,
+          monthlyHours: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$workingHours",
+                    cond: { $gte: ["$$this.date", thisMonth] }
+                  }
+                },
+                as: "session",
+                in: { $ifNull: ["$$session.totalHours", 0] }
+              }
+            }
+          }
+        }
+      }
+    ]);
+
+    // Popular food types
+    const foodTypeStats = await Donation.aggregate([
+      { $group: { _id: "$foodType", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+
+    // Monthly donation trend (last 6 months)
+    const monthlyTrend = await Donation.aggregate([
+      {
+        $match: {
+          createdAt: { 
+            $gte: new Date(today.getFullYear(), today.getMonth() - 5, 1) 
+          }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } }
+    ]);
+
+    res.json({
+      // Basic counts
+      totalDonations,
+      pendingDonations,
+      acceptedDonations,
+      agentAcceptedDonations,
+      completedDonations,
+      rejectedDonations,
+      agentRejectedDonations,
+      collectedDonations,
+      notFoundDonations,
+      
+      // Combined status groups
+      assignedDonations,
+      totalRejectedDonations,
+      
+      // User stats
+      totalUsers,
+      totalDonors,
+      totalAgents,
+      activeAgents,
+      blockedUsers,
+      
+      // Time-based
+      todayDonations,
+      weeklyDonations,
+      monthlyDonations,
+      
+      // Performance
+      agentStats,
+      foodTypeStats,
+      monthlyTrend,
+      
+      // Calculated metrics
+      completionRate: totalDonations > 0 ? Math.round((completedDonations / totalDonations) * 100) : 0,
+      agentUtilization: totalAgents > 0 ? Math.round((activeAgents / totalAgents) * 100) : 0
+    });
+  } catch (error) {
+    console.error('Get donation stats error:', error);
+    res.status(500).json({ msg: "Failed to get donation statistics" });
+  }
 };
 
 // 3. --- Role-Specific Queries ---
 
 exports.getAgents = async (req, res) => {
-  const agents = await User.find({ role: 'agent' });
-  res.json(agents);
+  try {
+    const agents = await User.find({ role: 'agent' });
+    
+    // Calculate real stats for each agent
+    const agentsWithStats = await Promise.all(agents.map(async (agent) => {
+      const agentObj = agent.toObject();
+      
+      // Get donation counts
+      const totalDeliveries = await Donation.countDocuments({ 
+        agent: agent._id, 
+        status: 'delivered' 
+      });
+      
+      const activeDeliveries = await Donation.countDocuments({ 
+        agent: agent._id, 
+        status: { $in: ['accepted', 'agent_accepted', 'collected'] }
+      });
+
+      // Calculate working time stats
+      const today = new Date();
+      const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      
+      const todayHours = agent.workingHours.filter(session => {
+        const sessionDate = new Date(session.date);
+        return sessionDate.toDateString() === today.toDateString();
+      }).reduce((total, session) => total + (session.totalHours || 0), 0);
+
+      const monthlyHours = agent.workingHours.filter(session => {
+        const sessionDate = new Date(session.date);
+        return sessionDate >= thisMonth;
+      }).reduce((total, session) => total + (session.totalHours || 0), 0);
+
+      return {
+        ...agentObj,
+        totalDeliveries,
+        activeDeliveries,
+        todayHours: Math.round(todayHours * 100) / 100,
+        monthlyHours: Math.round(monthlyHours * 100) / 100,
+        totalWorkingMinutes: agent.totalWorkingTime || 0
+      };
+    }));
+
+    res.json(agentsWithStats);
+  } catch (error) {
+    console.error('Get agents error:', error);
+    res.status(500).json({ msg: "Failed to get agents" });
+  }
 };
 
 exports.getDonors = async (req, res) => {
-  const donors = await User.find({ role: 'donor' });
-  res.json(donors);
+  try {
+    const donors = await User.find({ role: 'donor' });
+    
+    // Calculate real stats for each donor
+    const donorsWithStats = await Promise.all(donors.map(async (donor) => {
+      const donorObj = donor.toObject();
+      
+      const totalDonations = await Donation.countDocuments({ donor: donor._id });
+      const completedDonations = await Donation.countDocuments({ 
+        donor: donor._id, 
+        status: 'delivered' 
+      });
+      const pendingDonations = await Donation.countDocuments({ 
+        donor: donor._id, 
+        status: { $in: ['pending', 'accepted', 'agent_accepted', 'collected'] }
+      });
+
+      return {
+        ...donorObj,
+        totalDonations,
+        completedDonations,
+        pendingDonations
+      };
+    }));
+
+    res.json(donorsWithStats);
+  } catch (error) {
+    console.error('Get donors error:', error);
+    res.status(500).json({ msg: "Failed to get donors" });
+  }
 };
 
 exports.getCollectedDonations = async (req, res) => {
@@ -163,4 +367,56 @@ exports.deleteUser = async (req, res) => {
   const user = await User.findByIdAndDelete(id);
   if (!user) return res.status(404).json({ msg: "User not found" });
   res.json({ msg: "User deleted" });
+};
+
+// Get suggested agents for a donation based on distance
+exports.getSuggestedAgents = async (req, res) => {
+  try {
+    const { donationId } = req.params;
+    
+    // Get the donation with location
+    const donation = await Donation.findById(donationId);
+    if (!donation) {
+      return res.status(404).json({ msg: "Donation not found" });
+    }
+    
+    console.log('Full donation object:', JSON.stringify(donation, null, 2));
+    
+    // Check multiple possible location fields
+    let donationLocation = null;
+    if (donation.pickupLocation && donation.pickupLocation.lat && donation.pickupLocation.lng) {
+      donationLocation = donation.pickupLocation;
+      console.log('Using pickupLocation:', donationLocation);
+    } else if (donation.location && donation.location.lat && donation.location.lng) {
+      donationLocation = donation.location;
+      console.log('Using location:', donationLocation);
+    } else {
+      console.log('No valid location found. Available fields:', Object.keys(donation.toObject()));
+      console.log('pickupLocation:', donation.pickupLocation);
+      console.log('location:', donation.location);
+      return res.status(400).json({ msg: "Donation does not have location data" });
+    }
+    
+    // Get all available agents
+    const allAgents = await User.find({ 
+      role: 'agent', 
+      isBlocked: { $ne: true }
+    });
+    
+    console.log('Found agents:', allAgents.length);
+    
+    // Find nearest agents
+    const suggestedAgents = findNearestAgents(donationLocation, allAgents, 10);
+    
+    console.log('Suggested agents:', suggestedAgents.length);
+    
+    res.json({
+      donationId: donationId,
+      donationLocation: donationLocation,
+      suggestedAgents: suggestedAgents
+    });
+  } catch (error) {
+    console.error('Get suggested agents error:', error);
+    res.status(500).json({ msg: "Failed to get suggested agents" });
+  }
 };

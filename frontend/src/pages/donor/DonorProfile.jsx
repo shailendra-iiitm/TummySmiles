@@ -1,10 +1,7 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../../contexts/AuthContext';
+import { useEffect, useState, useCallback } from 'react';
+import api from '../../services/api';
 
 const DonorProfile = () => {
-  const { token } = useAuth();
-
   const [formData, setFormData] = useState({
     name: '',
     address: ''
@@ -13,19 +10,18 @@ const DonorProfile = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/donor/profile', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/donor/profile');
       setFormData({
         name: res.data.name || '',
         address: res.data.address || ''
       });
-    } catch {
+    } catch (error) {
+      console.error('Failed to load profile:', error);
       setError('Failed to load profile');
     }
-  };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,18 +34,17 @@ const DonorProfile = () => {
     setSuccess('');
 
     try {
-      await axios.patch('http://localhost:5000/api/donor/profile', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.patch('/donor/profile', formData);
       setSuccess('Profile updated successfully!');
-    } catch {
+    } catch (error) {
+      console.error('Failed to update profile:', error);
       setError('Failed to update profile');
     }
   };
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   return (
     <div className="min-h-screen p-6 bg-white">

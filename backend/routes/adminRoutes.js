@@ -32,4 +32,7 @@ router.patch('/user/:id/block', adminOnly, adminController.blockUser);
 router.patch('/user/:id/unblock', adminOnly, adminController.unblockUser);
 router.delete('/user/:id', adminOnly, adminController.deleteUser);
 
+// Get suggested agents for a donation
+router.get('/donation/:donationId/suggested-agents', adminOnly, adminController.getSuggestedAgents);
+
 module.exports = router;
