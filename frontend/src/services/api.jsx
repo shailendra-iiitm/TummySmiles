@@ -13,8 +13,8 @@ const getApiBaseUrl = () => {
     return 'http://localhost:5000/api';
   }
   
-  // Production fallback - replace with your Render URL
-  return 'https://your-backend-app.onrender.com/api';
+  // Production fallback - your Render backend URL
+  return 'https://tummysmiles.onrender.com/api';
 };
 
 const api = axios.create({
