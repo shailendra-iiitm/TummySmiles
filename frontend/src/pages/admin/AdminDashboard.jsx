@@ -12,6 +12,12 @@ const AdminDashboard = () => {
   const [collectedDonations, setCollectedDonations] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [suggestedAgents, setSuggestedAgents] = useState({});
+  const [supportTickets, setSupportTickets] = useState([]);
+  const [supportStats, setSupportStats] = useState({});
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [newStatus, setNewStatus] = useState('');
 
   const fetchDonations = useCallback(async () => {
     try {
@@ -58,6 +64,25 @@ const AdminDashboard = () => {
     }
   }, []);
 
+  const fetchSupportTickets = useCallback(async () => {
+    try {
+      const res = await api.get("/support/tickets");
+      setSupportTickets(res.data.tickets);
+    } catch (error) {
+      console.error('Failed to load support tickets:', error);
+      toast.error("Failed to load support tickets");
+    }
+  }, []);
+
+  const fetchSupportStats = useCallback(async () => {
+    try {
+      const res = await api.get("/support/stats");
+      setSupportStats(res.data);
+    } catch (error) {
+      console.error('Failed to load support statistics:', error);
+    }
+  }, []);
+
   const fetchCollectedDonations = useCallback(async () => {
     try {
       const res = await api.get("/admin/donations/collected");
@@ -67,6 +92,22 @@ const AdminDashboard = () => {
       toast.error("Failed to load collected donations");
     }
   }, []);
+
+  const updateSupportTicket = async (ticketId, updateData) => {
+    try {
+      const response = await api.put(`/support/ticket/${ticketId}`, updateData);
+      toast.success(response.data.message || "Support ticket updated successfully");
+      fetchSupportTickets();
+      if (showTicketModal && selectedTicket && selectedTicket._id === ticketId) {
+        // Refresh selected ticket data
+        const updatedTicket = await api.get(`/support/ticket/${ticketId}`);
+        setSelectedTicket(updatedTicket.data);
+      }
+    } catch (error) {
+      console.error('Failed to update support ticket:', error);
+      toast.error(error.response?.data?.message || "Failed to update support ticket");
+    }
+  };
 
   const blockUser = async (userId) => {
     try {
@@ -115,6 +156,40 @@ const AdminDashboard = () => {
       console.error('Failed to update status:', error);
       toast.error("Failed to update status");
     }
+  };
+
+  const handleTicketDetails = async (ticket) => {
+    try {
+      const response = await api.get(`/support/ticket/${ticket._id}`);
+      setSelectedTicket(response.data);
+      setNewStatus(ticket.status);
+      setShowTicketModal(true);
+    } catch (error) {
+      console.error('Failed to load ticket details:', error);
+      toast.error("Failed to load ticket details");
+    }
+  };
+
+  const handleTicketStatusUpdate = async () => {
+    if (!selectedTicket || !newStatus) return;
+    
+    const updateData = { status: newStatus };
+    if (newComment.trim()) {
+      updateData.adminComment = newComment.trim();
+    }
+    
+    await updateSupportTicket(selectedTicket._id, updateData);
+    setNewComment('');
+    setShowTicketModal(false);
+  };
+
+  const handleAddComment = async () => {
+    if (!selectedTicket || !newComment.trim()) return;
+    
+    await updateSupportTicket(selectedTicket._id, {
+      adminComment: newComment.trim()
+    });
+    setNewComment('');
   };
 
   const assignAgent = async (donationId, agentId) => {
@@ -172,7 +247,11 @@ const AdminDashboard = () => {
       fetchStats();
       fetchCollectedDonations();
     }
-  }, [activeTab, statusFilter, fetchDonations, fetchAgents, fetchDonors, fetchStats, fetchCollectedDonations]);
+    if (activeTab === 'support') {
+      fetchSupportTickets();
+      fetchSupportStats();
+    }
+  }, [activeTab, statusFilter, fetchDonations, fetchAgents, fetchDonors, fetchStats, fetchCollectedDonations, fetchSupportTickets, fetchSupportStats]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 p-4 md:p-6">
@@ -204,7 +283,7 @@ const AdminDashboard = () => {
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl shadow-lg mb-6 overflow-hidden">
           <div className="flex border-b border-gray-200">
-            {["donations", "assign", "users", "stats"].map((tab) => (
+            {["donations", "assign", "users", "support", "stats"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -216,7 +295,7 @@ const AdminDashboard = () => {
               >
                 <div className="flex items-center justify-center space-x-2">
                   <span>
-                    {tab === "donations" ? "🍽️" : tab === "assign" ? "👥" : tab === "users" ? "👤" : "📊"}
+                    {tab === "donations" ? "🍽️" : tab === "assign" ? "👥" : tab === "users" ? "👤" : tab === "support" ? "🎫" : "📊"}
                   </span>
                   <span className="capitalize">
                     {tab === "donations" ? "Manage Donations" : 
@@ -586,6 +665,210 @@ const AdminDashboard = () => {
             </div>
           </>
         )}
+        {/* ----------------- Support Tickets Tab ----------------- */}
+        {activeTab === "support" && (
+          <>
+            {/* Support Stats Cards */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-purple-100">Total Tickets</p>
+                    <p className="text-3xl font-bold">{supportStats.totalTickets || 0}</p>
+                  </div>
+                  <span className="text-4xl opacity-80">🎫</span>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-yellow-100">Open Tickets</p>
+                    <p className="text-3xl font-bold">{supportStats.statusStats?.open || 0}</p>
+                  </div>
+                  <span className="text-4xl opacity-80">🔓</span>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-100">In Progress</p>
+                    <p className="text-3xl font-bold">{supportStats.statusStats?.in_progress || 0}</p>
+                  </div>
+                  <span className="text-4xl opacity-80">⏳</span>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-green-500 to-emerald-500 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-100">Avg Response</p>
+                    <p className="text-3xl font-bold">{supportStats.avgResponseHours || 0}h</p>
+                  </div>
+                  <span className="text-4xl opacity-80">⚡</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Support Tickets Table */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-6">
+                <h2 className="text-2xl font-bold flex items-center">
+                  <span className="mr-3">🎫</span>
+                  Support Tickets Management
+                </h2>
+              </div>
+              
+              <div className="p-6">
+                {supportTickets && supportTickets.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket ID</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {supportTickets.map((ticket) => (
+                          <tr key={ticket._id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                              {ticket.ticketId}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-medium text-gray-900">{ticket.subject}</div>
+                              <div className="text-sm text-gray-500 truncate max-w-xs">
+                                {ticket.message}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm font-medium text-gray-900">{ticket.name}</div>
+                              <div className="text-sm text-gray-500">{ticket.email}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                ticket.category === 'technical' ? 'bg-red-100 text-red-800' :
+                                ticket.category === 'donation' ? 'bg-blue-100 text-blue-800' :
+                                ticket.category === 'agent' ? 'bg-green-100 text-green-800' :
+                                ticket.category === 'partnership' ? 'bg-purple-100 text-purple-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {ticket.category}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                ticket.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                                ticket.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                                ticket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {ticket.priority}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                ticket.status === 'resolved' ? 'bg-green-100 text-green-800' :
+                                ticket.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                                ticket.status === 'under_review' ? 'bg-purple-100 text-purple-800' :
+                                ticket.status === 'closed' ? 'bg-gray-100 text-gray-800' :
+                                'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {ticket.status.replace('_', ' ').toUpperCase()}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500">
+                              {new Date(ticket.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleTicketDetails(ticket)}
+                                  className="bg-indigo-500 text-white px-3 py-1 rounded text-xs hover:bg-indigo-600 transition-colors"
+                                >
+                                  Details
+                                </button>
+                                {ticket.status === 'open' && (
+                                  <>
+                                    <button
+                                      onClick={() => updateSupportTicket(ticket._id, { status: 'in_progress' })}
+                                      className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors"
+                                    >
+                                      Start
+                                    </button>
+                                    <button
+                                      onClick={() => updateSupportTicket(ticket._id, { status: 'under_review' })}
+                                      className="bg-purple-500 text-white px-3 py-1 rounded text-xs hover:bg-purple-600 transition-colors"
+                                    >
+                                      Review
+                                    </button>
+                                  </>
+                                )}
+                                {ticket.status === 'in_progress' && (
+                                  <>
+                                    <button
+                                      onClick={() => updateSupportTicket(ticket._id, { status: 'under_review' })}
+                                      className="bg-purple-500 text-white px-3 py-1 rounded text-xs hover:bg-purple-600 transition-colors"
+                                    >
+                                      Review
+                                    </button>
+                                    <button
+                                      onClick={() => updateSupportTicket(ticket._id, { status: 'resolved' })}
+                                      className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors"
+                                    >
+                                      Resolve
+                                    </button>
+                                  </>
+                                )}
+                                {ticket.status === 'under_review' && (
+                                  <>
+                                    <button
+                                      onClick={() => updateSupportTicket(ticket._id, { status: 'in_progress' })}
+                                      className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors"
+                                    >
+                                      Progress
+                                    </button>
+                                    <button
+                                      onClick={() => updateSupportTicket(ticket._id, { status: 'resolved' })}
+                                      className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors"
+                                    >
+                                      Resolve
+                                    </button>
+                                  </>
+                                )}
+                                {ticket.status === 'resolved' && (
+                                  <button
+                                    onClick={() => updateSupportTicket(ticket._id, { status: 'closed' })}
+                                    className="bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600 transition-colors"
+                                  >
+                                    Close
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <span className="text-6xl mb-4 block">🎫</span>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Support Tickets</h3>
+                    <p className="text-gray-500">All support tickets will appear here when users submit them.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
 
         {/* ----------------- Stats Tab ----------------- */}
         {activeTab === "stats" && (
@@ -774,6 +1057,255 @@ const AdminDashboard = () => {
           </>
         )}
       </div>
+
+      {/* Ticket Detail Modal */}
+      {showTicketModal && selectedTicket && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">Ticket #{selectedTicket.ticketId}</h2>
+                  <p className="text-indigo-100 mt-1">{selectedTicket.subject}</p>
+                </div>
+                <button
+                  onClick={() => setShowTicketModal(false)}
+                  className="text-white hover:text-indigo-200 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Ticket Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Contact Info</h3>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-gray-900">{selectedTicket.name}</p>
+                      <p className="text-gray-600">{selectedTicket.email}</p>
+                      {selectedTicket.phone && (
+                        <p className="text-gray-600">{selectedTicket.phone}</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Category & Priority</h3>
+                    <div className="mt-2 flex space-x-3">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        {selectedTicket.category}
+                      </span>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                        selectedTicket.priority === 'high' ? 'bg-red-100 text-red-800' :
+                        selectedTicket.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {selectedTicket.priority.charAt(0).toUpperCase() + selectedTicket.priority.slice(1)} Priority
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Status & Dates</h3>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">Current Status:</span>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                          selectedTicket.status === 'resolved' ? 'bg-green-100 text-green-800' :
+                          selectedTicket.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                          selectedTicket.status === 'under_review' ? 'bg-purple-100 text-purple-800' :
+                          selectedTicket.status === 'closed' ? 'bg-gray-100 text-gray-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {selectedTicket.status.replace('_', ' ').toUpperCase()}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Created: {new Date(selectedTicket.createdAt).toLocaleString()}
+                      </p>
+                      {selectedTicket.updatedAt !== selectedTicket.createdAt && (
+                        <p className="text-sm text-gray-600">
+                          Updated: {new Date(selectedTicket.updatedAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Description</h3>
+                <div className="bg-gray-50 rounded-lg p-4 border">
+                  <p className="text-gray-700 whitespace-pre-wrap">{selectedTicket.description}</p>
+                </div>
+              </div>
+
+              {/* Admin Comments */}
+              {selectedTicket.adminComments && selectedTicket.adminComments.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-3">Admin Comments & Updates</h3>
+                  <div className="space-y-3 max-h-48 overflow-y-auto">
+                    {selectedTicket.adminComments.map((comment, index) => (
+                      <div key={index} className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-indigo-800">Admin Update</span>
+                          <span className="text-sm text-indigo-600">
+                            {new Date(comment.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-indigo-700">{comment.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Section */}
+              <div className="border-t pt-6">
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-4">Ticket Actions</h3>
+                
+                {/* Status Update */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Update Status</label>
+                    <select
+                      value={newStatus}
+                      onChange={(e) => setNewStatus(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >
+                      <option value="open">Open</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="under_review">Under Review</option>
+                      <option value="resolved">Resolved</option>
+                      <option value="closed">Closed</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Add Comment (Optional)</label>
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Add an internal comment or update for the user..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      rows="3"
+                    />
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={handleTicketStatusUpdate}
+                      className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                    >
+                      Update Ticket
+                    </button>
+                    {newComment.trim() && (
+                      <button
+                        onClick={handleAddComment}
+                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                      >
+                        Add Comment Only
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="mt-6 pt-4 border-t">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Quick Actions</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTicket.status === 'open' && (
+                      <>
+                        <button
+                          onClick={() => {
+                            updateSupportTicket(selectedTicket._id, { status: 'in_progress' });
+                            setNewStatus('in_progress');
+                          }}
+                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm hover:bg-blue-200 transition-colors"
+                        >
+                          Start Working
+                        </button>
+                        <button
+                          onClick={() => {
+                            updateSupportTicket(selectedTicket._id, { status: 'under_review' });
+                            setNewStatus('under_review');
+                          }}
+                          className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm hover:bg-purple-200 transition-colors"
+                        >
+                          Put Under Review
+                        </button>
+                      </>
+                    )}
+                    {selectedTicket.status === 'in_progress' && (
+                      <>
+                        <button
+                          onClick={() => {
+                            updateSupportTicket(selectedTicket._id, { status: 'under_review' });
+                            setNewStatus('under_review');
+                          }}
+                          className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm hover:bg-purple-200 transition-colors"
+                        >
+                          Move to Review
+                        </button>
+                        <button
+                          onClick={() => {
+                            updateSupportTicket(selectedTicket._id, { status: 'resolved' });
+                            setNewStatus('resolved');
+                          }}
+                          className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm hover:bg-green-200 transition-colors"
+                        >
+                          Mark Resolved
+                        </button>
+                      </>
+                    )}
+                    {selectedTicket.status === 'under_review' && (
+                      <>
+                        <button
+                          onClick={() => {
+                            updateSupportTicket(selectedTicket._id, { status: 'in_progress' });
+                            setNewStatus('in_progress');
+                          }}
+                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm hover:bg-blue-200 transition-colors"
+                        >
+                          Back to Progress
+                        </button>
+                        <button
+                          onClick={() => {
+                            updateSupportTicket(selectedTicket._id, { status: 'resolved' });
+                            setNewStatus('resolved');
+                          }}
+                          className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm hover:bg-green-200 transition-colors"
+                        >
+                          Mark Resolved
+                        </button>
+                      </>
+                    )}
+                    {selectedTicket.status === 'resolved' && (
+                      <button
+                        onClick={() => {
+                          updateSupportTicket(selectedTicket._id, { status: 'closed' });
+                          setNewStatus('closed');
+                        }}
+                        className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm hover:bg-gray-200 transition-colors"
+                      >
+                        Close Ticket
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

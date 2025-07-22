@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useState } from 'react';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -42,7 +42,30 @@ const Navbar = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-6">
-            {user ? (
+            <Link 
+              to="/" 
+              className="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Home
+            </Link>
+            <Link 
+              to="/about" 
+              className="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              About
+            </Link>
+            <Link 
+              to="/contact" 
+              className="text-gray-700 hover:text-orange-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            >
+              Contact
+            </Link>
+            {isLoading ? (
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-500"></div>
+                <span className="text-sm text-gray-600">Loading...</span>
+              </div>
+            ) : user ? (
               <>
                 <Link 
                   to={getDashboardLink()} 
@@ -141,7 +164,35 @@ const Navbar = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 bg-white">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              {user ? (
+              {/* Common navigation for all users */}
+              <Link 
+                to="/" 
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-orange-50 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link 
+                to="/about" 
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-orange-50 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                About
+              </Link>
+              <Link 
+                to="/contact" 
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-orange-500 hover:bg-orange-50 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Contact
+              </Link>
+              
+              {isLoading ? (
+                <div className="flex items-center justify-center px-3 py-4">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-500 mr-2"></div>
+                  <span className="text-sm text-gray-600">Loading...</span>
+                </div>
+              ) : user ? (
                 <>
                   <div className="px-3 py-2 border-b border-gray-100 mb-2">
                     <p className="text-sm text-gray-600">

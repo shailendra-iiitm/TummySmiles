@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import foodDonationImage from '../assets/food_donation.png';
 
 const Home = () => {
   const { user } = useAuth();
@@ -29,58 +30,76 @@ const Home = () => {
         </div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className={`text-center transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <div className="mb-8 float-animation">
-              <span className="text-6xl hover:scale-110 transition-transform duration-300 inline-block">🍲</span>
-              <span className="text-6xl hover:scale-110 transition-transform duration-300 inline-block mx-2">❤️</span>
-              <span className="text-6xl hover:scale-110 transition-transform duration-300 inline-block">😊</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent mb-6 hover:scale-105 transition-transform duration-300">
-              Tummy Smiles
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Turn your extra food into someone's happiness. Join our community of food heroes 
-              spreading joy, <span className="text-orange-600 font-semibold">one meal at a time</span>.
-            </p>
-
-            {!user ? (
-              <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
-                <Link 
-                  to="/register"
-                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-lg pulse-glow"
-                >
-                  Start Sharing Food 🍽️
-                </Link>
-                <Link 
-                  to="/login"
-                  className="glass-effect border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-8 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105"
-                >
-                  Sign In
-                </Link>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              <div className="mb-8 float-animation">
+                <span className="text-6xl hover:scale-110 transition-transform duration-300 inline-block">🍲</span>
+                <span className="text-6xl hover:scale-110 transition-transform duration-300 inline-block mx-2">❤️</span>
+                <span className="text-6xl hover:scale-110 transition-transform duration-300 inline-block">😊</span>
               </div>
-            ) : (
-              <div className="mb-12">
-                <Link 
-                  to={user.role === 'donor' ? '/donor/dashboard' : user.role === 'agent' ? '/agent/dashboard' : '/admin/dashboard'}
-                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-lg pulse-glow"
-                >
-                  Go to Dashboard 📊
-                </Link>
-              </div>
-            )}
+              
+              <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent mb-6 hover:scale-105 transition-transform duration-300">
+                Tummy Smiles
+              </h1>
+              
+              <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl leading-relaxed">
+                Turn your extra food into someone's happiness. Join our community of food heroes 
+                spreading joy, <span className="text-orange-600 font-semibold">one meal at a time</span>.
+              </p>
 
-            {/* Stats Section */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16">
-              {stats.map((stat, index) => (
-                <div key={index} className="glass-effect p-6 rounded-xl text-center hover:scale-105 transition-all duration-300">
-                  <div className="text-3xl mb-2">{stat.icon}</div>
-                  <div className="text-2xl font-bold text-gray-900">{stat.number}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
+              {!user ? (
+                <div className="flex flex-col sm:flex-row gap-4 mb-12">
+                  <Link 
+                    to="/register"
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-lg pulse-glow"
+                  >
+                    Start Sharing Food 🍽️
+                  </Link>
+                  <Link 
+                    to="/login"
+                    className="glass-effect border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-8 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105"
+                  >
+                    Sign In
+                  </Link>
                 </div>
-              ))}
+              ) : (
+                <div className="mb-12">
+                  <Link 
+                    to={user.role === 'donor' ? '/donor/dashboard' : user.role === 'agent' ? '/agent/dashboard' : '/admin/dashboard'}
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-lg pulse-glow"
+                  >
+                    Go to Dashboard 📊
+                  </Link>
+                </div>
+              )}
             </div>
+
+            {/* Hero Image */}
+            <div className={`relative transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              <div className="relative z-10">
+                <img 
+                  src={foodDonationImage} 
+                  alt="Food Donation - Sharing meals with community" 
+                  className="w-full h-auto rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-2xl"></div>
+              </div>
+              
+              {/* Floating elements */}
+              <div className="absolute -top-4 -right-4 w-20 h-20 bg-orange-200 rounded-full opacity-60 animate-pulse"></div>
+              <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-red-200 rounded-full opacity-40 animate-bounce"></div>
+            </div>
+          </div>
+
+          {/* Stats Section */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16">
+            {stats.map((stat, index) => (
+              <div key={index} className="glass-effect p-6 rounded-xl text-center hover:scale-105 transition-all duration-300">
+                <div className="text-3xl mb-2">{stat.icon}</div>
+                <div className="text-2xl font-bold text-gray-900">{stat.number}</div>
+                <div className="text-sm text-gray-600">{stat.label}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -162,7 +181,7 @@ const Home = () => {
                 "I used to feel bad about throwing away extra food. Now I feel amazing knowing it's helping someone in need!"
               </p>
               <div className="text-sm">
-                <p className="font-semibold text-gray-900">Sarah Johnson</p>
+                <p className="font-semibold text-gray-900">Madhav Thakur</p>
                 <p className="text-gray-500">Food Donor</p>
               </div>
             </div>
@@ -175,7 +194,7 @@ const Home = () => {
                 "Being a delivery agent has been so rewarding. I love seeing the smiles when I deliver meals!"
               </p>
               <div className="text-sm">
-                <p className="font-semibold text-gray-900">Mike Chen</p>
+                <p className="font-semibold text-gray-900">Saurabh Yadav</p>
                 <p className="text-gray-500">Delivery Agent</p>
               </div>
             </div>
@@ -188,7 +207,7 @@ const Home = () => {
                 "Our restaurant partnerships with Tummy Smiles have made such a positive impact on our community."
               </p>
               <div className="text-sm">
-                <p className="font-semibold text-gray-900">Restaurant Partner</p>
+                <p className="font-semibold text-gray-900">NBM- Restaurant Partner</p>
                 <p className="text-gray-500">Local Business</p>
               </div>
             </div>
@@ -245,10 +264,10 @@ const Home = () => {
             <div>
               <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
               <div className="space-y-2 text-gray-400">
-                <p>How it Works</p>
-                <p>About Us</p>
-                <p>Contact</p>
-                <p>FAQ</p>
+                <Link to="/about" className="block hover:text-orange-400 transition-colors">About Us</Link>
+                <Link to="/contact" className="block hover:text-orange-400 transition-colors">Contact</Link>
+                <Link to="/register" className="block hover:text-orange-400 transition-colors">Get Started</Link>
+                <Link to="/login" className="block hover:text-orange-400 transition-colors">Sign In</Link>
               </div>
             </div>
             
@@ -256,14 +275,14 @@ const Home = () => {
               <h4 className="text-lg font-semibold mb-4">Contact</h4>
               <div className="space-y-2 text-gray-400">
                 <p>📧 hello@tummysmiles.com</p>
-                <p>📞 1-800-SMILES</p>
+                <p>📞 +918604434817</p>
                 <p>📍 Everywhere with love</p>
               </div>
             </div>
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 Tummy Smiles. Made with ❤️ for humanity.</p>
+            <p>&copy; 2025 Tummy Smiles. Made with ❤️ by Shailendra for humanity </p>
           </div>
         </div>
       </footer>
