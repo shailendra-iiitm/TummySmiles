@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
 import { toast } from "react-hot-toast";
+import AdminChatManagement from "../../components/admin/AdminChatManagement";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("donations");
@@ -283,7 +284,7 @@ const AdminDashboard = () => {
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl shadow-lg mb-6 overflow-hidden">
           <div className="flex border-b border-gray-200">
-            {["donations", "assign", "users", "support", "stats"].map((tab) => (
+            {["donations", "assign", "users", "support", "chat", "stats"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -295,7 +296,7 @@ const AdminDashboard = () => {
               >
                 <div className="flex items-center justify-center space-x-2">
                   <span>
-                    {tab === "donations" ? "🍽️" : tab === "assign" ? "👥" : tab === "users" ? "👤" : tab === "support" ? "🎫" : "📊"}
+                    {tab === "donations" ? "🍽️" : tab === "assign" ? "👥" : tab === "users" ? "👤" : tab === "support" ? "🎫" : tab === "chat" ? "💬" : "📊"}
                   </span>
                   <span className="capitalize">
                     {tab === "donations" ? "Manage Donations" : 
@@ -868,6 +869,11 @@ const AdminDashboard = () => {
               </div>
             </div>
           </>
+        )}
+
+        {/* ----------------- Chat Management Tab ----------------- */}
+        {activeTab === "chat" && (
+          <AdminChatManagement />
         )}
 
         {/* ----------------- Stats Tab ----------------- */}

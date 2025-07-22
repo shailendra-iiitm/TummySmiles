@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './contexts/AuthProvider';
+import { ChatProvider } from './contexts/ChatContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import ParticleBackground from './components/ParticleBackground';
+import ChatWidget from './components/ChatWidget';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
@@ -33,10 +35,12 @@ import AdminProfile from './pages/admin/AdminProfile';
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <ChatProvider>
+        <BrowserRouter>
         <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 relative">
           <ParticleBackground />
           <Navbar />
+          <ChatWidget />
           <Toaster 
             position="top-right"
             toastOptions={{
@@ -122,6 +126,7 @@ function App() {
           </Routes>
         </div>
       </BrowserRouter>
+      </ChatProvider>
     </AuthProvider>
   );
 }
