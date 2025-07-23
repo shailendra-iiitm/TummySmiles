@@ -187,7 +187,7 @@ const ChatWidget = () => {
       formData.append('messageType', type);
       formData.append('fileName', file.name);
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/send-media`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/send-media`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -279,7 +279,7 @@ const ChatWidget = () => {
       formData.append('chatId', activeChat.chatId);
       formData.append('messageType', 'voice');
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/send-media`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/chat/send-media`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
