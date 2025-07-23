@@ -301,7 +301,10 @@ const AdminDashboard = () => {
                   <span className="capitalize">
                     {tab === "donations" ? "Manage Donations" : 
                      tab === "assign" ? "Assign Agents" : 
-                     tab === "users" ? "Manage Users" : "View Stats"}
+                     tab === "users" ? "Manage Users" : 
+                     tab === "support" ? "Ticket Management" :
+                     tab === "chat" ? "Chat Support" :
+                     tab === "stats" ? "View Stats" : "View Stats"}
                   </span>
                 </div>
               </button>

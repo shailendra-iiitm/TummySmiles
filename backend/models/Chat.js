@@ -86,7 +86,7 @@ const chatSchema = new mongoose.Schema({
 });
 
 // Index for efficient queries
-chatSchema.index({ chatId: 1 });
+// Note: chatId already has unique: true, so no need for separate index
 chatSchema.index({ 'participants.userId': 1 });
 chatSchema.index({ status: 1 });
 chatSchema.index({ lastActivity: -1 });

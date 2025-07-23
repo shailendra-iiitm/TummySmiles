@@ -80,6 +80,38 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/chat', chatRoutes);
 
+// Root route handler - API status page
+app.get('/', (req, res) => {
+  res.json({
+    message: 'TummySmiles API Server',
+    status: 'Running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      donor: '/api/donor',
+      agent: '/api/agent',
+      admin: '/api/admin',
+      support: '/api/support',
+      chat: '/api/chat'
+    },
+    documentation: 'Visit the frontend application for the complete interface'
+  });
+});
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    version: '1.0.0',
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Socket.io authentication middleware
 const authenticateSocket = async (socket, next) => {
   try {
