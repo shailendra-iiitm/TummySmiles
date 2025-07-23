@@ -61,7 +61,7 @@ const AdminChatManagement = () => {
       if (user?.role === 'admin') {
         try {
           const response = await fetch(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/admin/all?status=${filter}`,
+            `${import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000'}/api/chat/admin/all?status=${filter}`,
             {
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -94,7 +94,7 @@ const AdminChatManagement = () => {
       setSelectedChat(null); // Clear previous chat
       
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/history/${chat.chatId}`,
+        `${import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000'}/api/chat/history/${chat.chatId}`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -138,7 +138,7 @@ const AdminChatManagement = () => {
   const updateChatStatus = async (chatId, status) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/admin/status/${chatId}`,
+        `${import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000'}/api/chat/admin/status/${chatId}`,
         {
           method: 'PUT',
           headers: {
@@ -153,7 +153,7 @@ const AdminChatManagement = () => {
         toast.success(`Chat marked as ${status}`);
         // Refresh chat list
         const refreshResponse = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/admin/all?status=${filter}`,
+          `${import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000'}/api/chat/admin/all?status=${filter}`,
           {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -388,7 +388,7 @@ const AdminChatManagement = () => {
                                       <Mic size={12} className="text-white" />
                                     </div>
                                     <audio controls className="flex-1 h-8"
-                                      src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${message.mediaUrl}`}
+                                      src={`${import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000'}${message.mediaUrl}`}
                                     >
                                       Your browser does not support audio playback.
                                     </audio>
@@ -398,10 +398,10 @@ const AdminChatManagement = () => {
                                 {(message.mediaType === 'image' || message.mediaType === 'camera') && (
                                   <div className="rounded-lg overflow-hidden max-w-xs">
                                     <img 
-                                      src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${message.mediaUrl}`}
+                                      src={`${import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000'}${message.mediaUrl}`}
                                       alt={message.fileName}
                                       className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                                      onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${message.mediaUrl}`, '_blank')}
+                                      onClick={() => window.open(`${import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000'}${message.mediaUrl}`, '_blank')}
                                     />
                                   </div>
                                 )}
@@ -410,7 +410,7 @@ const AdminChatManagement = () => {
                                   <div className="flex items-center space-x-2 bg-black/10 rounded-lg p-2">
                                     <Paperclip size={16} />
                                     <a 
-                                      href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${message.mediaUrl}`}
+                                      href={`${import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000'}${message.mediaUrl}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-blue-500 hover:text-blue-600 text-sm underline"
