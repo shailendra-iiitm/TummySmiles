@@ -129,21 +129,29 @@ io.on('connection', (socket) => {
   // Join chat room
   socket.on('joinChat', async (chatId) => {
     try {
-      const chat = await Chat.findOne({
-        chatId,
-        'participants.userId': socket.userId
-      });
+      const chat = await Chat.findOne({ chatId });
 
-      if (chat) {
+      if (!chat) {
+        console.log(`Chat not found: ${chatId}`);
+        return;
+      }
+
+      // Check if user is participant or admin/agent
+      const isParticipant = chat.participants.some(p => p.userId.toString() === socket.userId);
+      const isAdmin = socket.userRole === 'admin' || socket.userRole === 'agent';
+
+      if (isParticipant || isAdmin) {
         socket.join(chatId);
         socket.currentChatId = chatId;
-        console.log(`${socket.userName} joined chat: ${chatId}`);
+        console.log(`${socket.userName} (${socket.userRole}) joined chat: ${chatId}`);
         
         // Notify others in the chat about user joining
         socket.to(chatId).emit('userJoinedChat', {
           userName: socket.userName,
           userRole: socket.userRole
         });
+      } else {
+        console.log(`Access denied for ${socket.userName} to join chat: ${chatId}`);
       }
     } catch (error) {
       console.error('Error joining chat:', error);
@@ -188,16 +196,19 @@ io.on('connection', (socket) => {
         timestamp: new Date()
       };
 
-      console.log('Sending message with senderId:', socket.userId, 'senderName:', socket.userName, 'role:', socket.userRole);
+      console.log('Sending message with senderId:', socket.userId, 'senderName:', socket.userName, 'role:', socket.userRole, 'to chatId:', chatId);
 
       chat.messages.push(newMessage);
       await chat.save();
 
       // Emit message to all users in the chat
+      console.log(`Broadcasting message to chat room: ${chatId}`);
       io.to(chatId).emit('newMessage', {
         ...newMessage,
         chatId
       });
+
+      console.log(`Message broadcasted to ${io.sockets.adapter.rooms.get(chatId)?.size || 0} users in room ${chatId}`);
 
       // Notify admins about new message from users
       if (socket.userRole === 'donor' || socket.userRole === 'user') {

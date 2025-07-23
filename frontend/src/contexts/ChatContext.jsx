@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
@@ -22,6 +22,12 @@ export const ChatProvider = ({ children }) => {
   const [onlineUsers, setOnlineUsers] = useState(new Map());
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [unreadChats, setUnreadChats] = useState(new Map());
+  const activeChatRef = useRef(null);
+
+  // Keep ref updated with current active chat
+  useEffect(() => {
+    activeChatRef.current = activeChat;
+  }, [activeChat]);
 
   // Initialize socket connection
   useEffect(() => {
@@ -65,7 +71,7 @@ export const ChatProvider = ({ children }) => {
           });
           
           // Update unread count
-          if (message.chatId !== activeChat?.chatId) {
+          if (message.chatId !== activeChatRef.current?.chatId) {
             setUnreadChats(prev => {
               const newMap = new Map(prev);
               const currentCount = newMap.get(message.chatId) || 0;
@@ -165,7 +171,15 @@ export const ChatProvider = ({ children }) => {
         setIsConnected(false);
       };
     }
-  }, [token, user, activeChat?.chatId]); // Added missing dependency
+  }, [token, user]); // Removed activeChat?.chatId to prevent unnecessary socket reconnections
+
+  // Ensure user joins chat room when socket connects and active chat exists
+  useEffect(() => {
+    if (socket && isConnected && activeChat?.chatId) {
+      console.log('Joining chat room:', activeChat.chatId);
+      socket.emit('joinChat', activeChat.chatId);
+    }
+  }, [socket, isConnected, activeChat?.chatId]);
 
   // Join chat room
   const joinChat = (chatId) => {

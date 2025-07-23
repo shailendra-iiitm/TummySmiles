@@ -25,9 +25,11 @@ const ChatWidget = () => {
   const { user } = useAuth();
   const { 
     isConnected, 
+    socket,
     activeChat, 
     setActiveChat, 
     messages, 
+    setMessages,
     sendMessage, 
     sendTypingIndicator,
     typingUsers 
@@ -59,6 +61,36 @@ const ChatWidget = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Backup message listener to ensure real-time updates for donor/agent users
+  useEffect(() => {
+    if (socket && activeChat) {
+      const handleNewMessage = (message) => {
+        console.log('ChatWidget received new message:', message);
+        if (message.chatId === activeChat.chatId) {
+          // Update messages directly if the message is for the current chat
+          setMessages(prev => {
+            // Check if message already exists to prevent duplicates
+            const messageExists = prev.some(msg => 
+              msg.timestamp === message.timestamp && 
+              msg.senderId === message.senderId && 
+              msg.message === message.message
+            );
+            if (!messageExists) {
+              return [...prev, message];
+            }
+            return prev;
+          });
+        }
+      };
+
+      socket.on('newMessage', handleNewMessage);
+
+      return () => {
+        socket.off('newMessage', handleNewMessage);
+      };
+    }
+  }, [socket, activeChat, setMessages]);
+
   // Focus input when chat opens
   useEffect(() => {
     if (isOpen && !isMinimized && inputRef.current) {
@@ -83,6 +115,12 @@ const ChatWidget = () => {
         setActiveChat(data.chat);
         setIsOpen(true);
         setIsMinimized(false);
+        
+        // Ensure we join the chat room after setting active chat
+        if (socket && data.chat?.chatId) {
+          console.log('Joining chat room from startChat:', data.chat.chatId);
+          socket.emit('joinChat', data.chat.chatId);
+        }
       } else {
         toast.error('Failed to start chat');
       }
