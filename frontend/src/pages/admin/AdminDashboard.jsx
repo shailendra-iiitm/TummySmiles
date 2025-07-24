@@ -19,6 +19,8 @@ const AdminDashboard = () => {
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [newStatus, setNewStatus] = useState('');
+  const [moneyDonations, setMoneyDonations] = useState([]);
+  const [moneyDonationStats, setMoneyDonationStats] = useState({});
 
   const fetchDonations = useCallback(async () => {
     try {
@@ -91,6 +93,26 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Failed to load collected donations:', error);
       toast.error("Failed to load collected donations");
+    }
+  }, []);
+
+  const fetchMoneyDonations = useCallback(async () => {
+    try {
+      const res = await api.get("/payment/admin/all");
+      setMoneyDonations(res.data.donations || []);
+    } catch (error) {
+      console.error('Failed to load money donations:', error);
+      toast.error("Failed to load money donations");
+    }
+  }, []);
+
+  const fetchMoneyDonationStats = useCallback(async () => {
+    try {
+      const res = await api.get("/payment/admin/analytics");
+      setMoneyDonationStats(res.data.analytics || {});
+    } catch (error) {
+      console.error('Failed to load money donation stats:', error);
+      toast.error("Failed to load money donation stats");
     }
   }, []);
 
@@ -252,7 +274,11 @@ const AdminDashboard = () => {
       fetchSupportTickets();
       fetchSupportStats();
     }
-  }, [activeTab, statusFilter, fetchDonations, fetchAgents, fetchDonors, fetchStats, fetchCollectedDonations, fetchSupportTickets, fetchSupportStats]);
+    if (activeTab === 'money') {
+      fetchMoneyDonations();
+      fetchMoneyDonationStats();
+    }
+  }, [activeTab, statusFilter, fetchDonations, fetchAgents, fetchDonors, fetchStats, fetchCollectedDonations, fetchSupportTickets, fetchSupportStats, fetchMoneyDonations, fetchMoneyDonationStats]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 p-4 md:p-6">
@@ -284,7 +310,7 @@ const AdminDashboard = () => {
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl shadow-lg mb-6 overflow-hidden">
           <div className="flex border-b border-gray-200">
-            {["donations", "assign", "users", "support", "chat", "stats"].map((tab) => (
+            {["donations", "assign", "users", "money", "support", "chat", "stats"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -296,12 +322,18 @@ const AdminDashboard = () => {
               >
                 <div className="flex items-center justify-center space-x-2">
                   <span>
-                    {tab === "donations" ? "🍽️" : tab === "assign" ? "👥" : tab === "users" ? "👤" : tab === "support" ? "🎫" : tab === "chat" ? "💬" : "📊"}
+                    {tab === "donations" ? "🍽️" : 
+                     tab === "assign" ? "👥" : 
+                     tab === "users" ? "👤" : 
+                     tab === "money" ? "💰" : 
+                     tab === "support" ? "🎫" : 
+                     tab === "chat" ? "💬" : "📊"}
                   </span>
                   <span className="capitalize">
                     {tab === "donations" ? "Manage Donations" : 
                      tab === "assign" ? "Assign Agents" : 
                      tab === "users" ? "Manage Users" : 
+                     tab === "money" ? "Money Donations" : 
                      tab === "support" ? "Ticket Management" :
                      tab === "chat" ? "Chat Support" :
                      tab === "stats" ? "View Stats" : "View Stats"}
@@ -874,6 +906,246 @@ const AdminDashboard = () => {
           </>
         )}
 
+        {/* ----------------- Money Donations Management Tab ----------------- */}
+        {activeTab === "money" && (
+          <>
+            {/* Money Donation Stats Cards */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+              <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-100">Total Money Donations</p>
+                    <p className="text-3xl font-bold">{moneyDonationStats.totalStats?.reduce((acc, stat) => acc + (stat.count || 0), 0) || 0}</p>
+                  </div>
+                  <span className="text-4xl opacity-80">💰</span>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-yellow-100">Total Amount Collected</p>
+                    <p className="text-3xl font-bold">₹{moneyDonationStats.totalStats?.find(stat => stat._id === 'completed')?.totalAmount?.toLocaleString() || 0}</p>
+                  </div>
+                  <span className="text-4xl opacity-80">💳</span>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-100">Completed Donations</p>
+                    <p className="text-3xl font-bold">{moneyDonationStats.totalStats?.find(stat => stat._id === 'completed')?.count || 0}</p>
+                  </div>
+                  <span className="text-4xl opacity-80">✅</span>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-purple-100">Failed Donations</p>
+                    <p className="text-3xl font-bold">{moneyDonationStats.totalStats?.find(stat => stat._id === 'failed')?.count || 0}</p>
+                  </div>
+                  <span className="text-4xl opacity-80">❌</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Money Donations Table */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-6">
+                <h3 className="text-xl font-bold">💰 Money Donations Management</h3>
+                <p className="text-green-100 mt-1">Manage and track all monetary contributions</p>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Donor Details
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Amount
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Payment ID
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {moneyDonations.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                          <div className="flex flex-col items-center">
+                            <span className="text-6xl mb-4">💰</span>
+                            <p className="text-lg font-medium">No money donations found</p>
+                            <p className="text-sm">Money donations will appear here once users start contributing</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      moneyDonations.map((donation) => (
+                        <tr key={donation._id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10">
+                                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center">
+                                  <span className="text-white font-medium">
+                                    {donation.donorName?.charAt(0)?.toUpperCase() || 'U'}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-gray-900">
+                                  {donation.isAnonymous ? 'Anonymous Donor' : donation.donorName}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  {donation.isAnonymous ? 'Hidden' : donation.donorEmail}
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  {donation.isAnonymous ? 'Hidden' : donation.donorPhone}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-lg font-bold text-green-600">
+                              ₹{donation.amount?.toLocaleString()}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {donation.currency || 'INR'}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              donation.paymentStatus === 'completed' 
+                                ? 'bg-green-100 text-green-800' 
+                                : donation.paymentStatus === 'failed'
+                                ? 'bg-red-100 text-red-800'
+                                : donation.paymentStatus === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {donation.paymentStatus === 'completed' ? '✅ Completed' : 
+                               donation.paymentStatus === 'failed' ? '❌ Failed' : 
+                               donation.paymentStatus === 'pending' ? '⏳ Pending' : 
+                               donation.paymentStatus}
+                            </span>
+                            {donation.paymentMethod && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                via {donation.paymentMethod}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <div>{new Date(donation.createdAt).toLocaleDateString()}</div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(donation.createdAt).toLocaleTimeString()}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-mono text-gray-900">
+                              {donation.receiptNumber || 'N/A'}
+                            </div>
+                            {donation.razorpayPaymentId && (
+                              <div className="text-xs text-gray-500 truncate max-w-32">
+                                {donation.razorpayPaymentId}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(donation.receiptNumber || donation._id);
+                                toast.success('Receipt number copied!');
+                              }}
+                              className="text-blue-600 hover:text-blue-900 mr-3"
+                            >
+                              📋 Copy Receipt
+                            </button>
+                            {donation.message && (
+                              <button
+                                onClick={() => {
+                                  toast.info(`Message: ${donation.message}`);
+                                }}
+                                className="text-green-600 hover:text-green-900"
+                              >
+                                💬 View Message
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Monthly Trend Chart */}
+            {moneyDonationStats.monthlyTrend && moneyDonationStats.monthlyTrend.length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">📈 Monthly Money Donation Trends</h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {moneyDonationStats.monthlyTrend.map((trend, index) => (
+                    <div key={index} className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg">
+                      <div className="text-sm text-gray-600">
+                        {trend._id.month}/{trend._id.year}
+                      </div>
+                      <div className="text-lg font-bold text-green-600">
+                        ₹{trend.totalAmount.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {trend.count} donations
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Top Donors */}
+            {moneyDonationStats.topDonors && moneyDonationStats.topDonors.length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">🏆 Top Money Donors</h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {moneyDonationStats.topDonors.map((donor, index) => (
+                    <div key={index} className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-lg font-bold text-gray-900">
+                            {donor.donorName || 'Anonymous'}
+                          </div>
+                          <div className="text-2xl font-bold text-orange-600">
+                            ₹{donor.totalAmount.toLocaleString()}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {donor.donationCount} donations
+                          </div>
+                        </div>
+                        <div className="text-3xl">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
         {/* ----------------- Chat Management Tab ----------------- */}
         {activeTab === "chat" && (
           <AdminChatManagement />
@@ -1319,4 +1591,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default   AdminDashboard;
