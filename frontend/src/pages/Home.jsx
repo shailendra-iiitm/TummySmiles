@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import foodDonationImage from '../assets/food_donation.png';
+import HomeImg from "../assets/food_love_smile.png";
 
 const Home = () => {
   const { user } = useAuth();
@@ -20,74 +21,71 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-orange-100 via-yellow-50 to-red-100 overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-4 -right-4 w-20 h-20 bg-orange-200 rounded-full opacity-60 animate-pulse"></div>
-          <div className="absolute top-1/4 -left-8 w-16 h-16 bg-red-200 rounded-full opacity-40 animate-bounce"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-12 h-12 bg-yellow-200 rounded-full opacity-50 animate-pulse"></div>
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <div className="mb-8 float-animation">
-                <span className="text-6xl hover:scale-110 transition-transform duration-300 inline-block">🍲</span>
-                <span className="text-6xl hover:scale-110 transition-transform duration-300 inline-block mx-2">❤️</span>
-                <span className="text-6xl hover:scale-110 transition-transform duration-300 inline-block">😊</span>
-              </div>
-              
-              <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent mb-6 hover:scale-105 transition-transform duration-300">
-                Tummy Smiles
-              </h1>
-              
-              <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl leading-relaxed">
-                Turn your extra food into someone's happiness. Join our community of food heroes 
-                spreading joy, <span className="text-orange-600 font-semibold">one meal at a time</span>.
-              </p>
-
-              {!user ? (
-                <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                  <Link 
-                    to="/register"
-                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-lg pulse-glow"
-                  >
-                    Start Sharing Food 🍽️
-                  </Link>
-                  <Link 
-                    to="/login"
-                    className="glass-effect border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-8 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105"
-                  >
-                    Sign In
-                  </Link>
-                </div>
-              ) : (
-                <div className="mb-12">
-                  <Link 
-                    to={user.role === 'donor' ? '/donor/dashboard' : user.role === 'agent' ? '/agent/dashboard' : '/admin/dashboard'}
-                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-lg pulse-glow"
-                  >
-                    Go to Dashboard 📊
-                  </Link>
-                </div>
-              )}
+    { /* Hero Section */}
+        <div className="relative bg-gradient-to-br from-orange-100 via-yellow-50 to-red-100 overflow-hidden">
+          {/* Animated background elements */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -top-4 -right-4 w-20 h-20 bg-orange-200 rounded-full opacity-60 animate-pulse"></div>
+            <div className="absolute top-1/4 -left-8 w-16 h-16 bg-red-200 rounded-full opacity-40 animate-bounce"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-12 h-12 bg-yellow-200 rounded-full opacity-50 animate-pulse"></div>
+          </div>
+          
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            <div className="grid lg:grid-cols-2 gap-6 items-center">
+          <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div className="mb-8 float-animation">
+              <img 
+            src={HomeImg}
+            alt="Food, Love, Smile Emojis" 
+            className="h-20 w-auto mx-auto"
+              />
             </div>
+            
+            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent mb-6 hover:scale-105 transition-transform duration-300">
+              Tummy Smiles
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl leading-relaxed">
+              Turn your extra food into someone's happiness. Join our community of food heroes 
+              spreading joy, <span className="text-orange-600 font-semibold">Genrate a Smile by Donating |Collecting |Delivering Food</span>
+            </p>
 
-            {/* Hero Image */}
-            <div className={`relative transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <div className="relative z-10">
-                <img 
-                  src={foodDonationImage} 
-                  alt="Food Donation - Sharing meals with community" 
-                  className="w-full h-auto rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-2xl"></div>
+            {!user ? (
+              <div className="flex flex-col sm:flex-row gap-4 mb-12">
+            <Link 
+              to="/register"
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-lg pulse-glow"
+            >
+              Start Sharing Food 🍽️
+            </Link>
+            <Link 
+              to="/login"
+              className="glass-effect border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-8 py-4 rounded-full text-lg font-semibold transition-all hover:scale-105"
+            >
+              Sign In
+            </Link>
               </div>
-              
-              {/* Floating elements */}
-              <div className="absolute -top-4 -right-4 w-20 h-20 bg-orange-200 rounded-full opacity-60 animate-pulse"></div>
-              <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-red-200 rounded-full opacity-40 animate-bounce"></div>
+            ) : (
+              <div className="mb-12">
+            <Link 
+              to={user.role === 'donor' ? '/donor/dashboard' : user.role === 'agent' ? '/agent/dashboard' : '/admin/dashboard'}
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all transform hover:scale-105 shadow-lg pulse-glow"
+            >
+              Go to Dashboard 📊
+            </Link>
+              </div>
+            )}
+          </div>
+          <div className={`relative transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div className="relative z-10 pl-2">
+              <img 
+            src={foodDonationImage} 
+            alt="Food Donation - Sharing meals with community" 
+            className="w-full h-auto rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-2xl"></div>
+            </div>
+            
             </div>
           </div>
 

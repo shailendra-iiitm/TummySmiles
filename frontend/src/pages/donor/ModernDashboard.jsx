@@ -186,7 +186,7 @@ const ModernDonorDashboard = () => {
         <div className="mb-8">
           <div className="glass-morphism p-6 rounded-3xl">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link 
                 to="/donor/create"
                 className="group btn-modern text-white p-6 rounded-2xl text-center hover-lift"
@@ -194,6 +194,15 @@ const ModernDonorDashboard = () => {
                 <div className="text-3xl mb-2">🍽️</div>
                 <div className="font-semibold">Create Donation</div>
                 <div className="text-sm opacity-90">Share your excess food</div>
+              </Link>
+              
+              <Link 
+                to="/donor/money-donation"
+                className="group bg-gradient-to-r from-green-500 to-emerald-500 text-white p-6 rounded-2xl text-center hover-lift"
+              >
+                <div className="text-3xl mb-2">💰</div>
+                <div className="font-semibold">Donate Money</div>
+                <div className="text-sm opacity-90">Support our operations</div>
               </Link>
               
               <Link 

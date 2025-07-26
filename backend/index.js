@@ -9,6 +9,8 @@ const agentRoutes = require('./routes/agentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const supportRoutes = require('./routes/supportRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const webhookRoutes = require('./routes/webhookRoutes');
 const cors = require('cors');
 const Chat = require('./models/Chat');
 const User = require('./models/User');
@@ -72,6 +74,8 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Webhook routes (before body parsing middleware)
+app.use('/api/webhook', webhookRoutes);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/donor', donorRoutes);
@@ -79,6 +83,7 @@ app.use('/api/agent', agentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Root route handler - API status page
 app.get('/', (req, res) => {
