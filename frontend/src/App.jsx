@@ -21,6 +21,8 @@ import CreateDonation from './pages/donor/CreateDonation';
 import MyDonations from './pages/donor/MyDonations';
 import DonorProfile from './pages/donor/DonorProfile';
 import EditDonation from './pages/donor/EditDonation';
+import MoneyDonation from './pages/donor/MoneyDonation';
+import MyMoneyDonations from './pages/donor/MyMoneyDonations';
 
 // Agent Pages
 import AgentDashboard from './pages/agent/AgentDashboard';

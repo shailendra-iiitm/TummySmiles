@@ -35,4 +35,9 @@ router.delete('/user/:id', adminOnly, adminController.deleteUser);
 // Get suggested agents for a donation
 router.get('/donation/:donationId/suggested-agents', adminOnly, adminController.getSuggestedAgents);
 
+// --- Money Donations (Admin Only) ---
+const { getAllMoneyDonations, getMoneyDonationAnalytics } = require('../controllers/paymentController');
+router.get('/money-donations', adminOnly, getAllMoneyDonations);
+router.get('/money-donations/analytics', adminOnly, getMoneyDonationAnalytics);
+
 module.exports = router;
