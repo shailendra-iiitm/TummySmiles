@@ -91,6 +91,16 @@ function App() {
                 <EditDonation />
               </ProtectedRoute>
             } />
+            <Route path="/donor/money-donation" element={
+              <ProtectedRoute role="donor">
+                <MoneyDonation />
+              </ProtectedRoute>
+            } />
+            <Route path="/donor/money-donations" element={
+              <ProtectedRoute role="donor">
+                <MyMoneyDonations />
+              </ProtectedRoute>
+            } />
 
             {/* Agent Routes */}
             <Route path="/agent/dashboard" element={
