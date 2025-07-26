@@ -76,7 +76,24 @@ const handlePaymentCaptured = async (payment) => {
 
 const handlePaymentFailed = async (payment) => {
   try {
-    console.log('Processing payment failed:', payment.id);
+    console.log('=== PAYMENT FAILED DETAILS ===');
+    console.log('Payment ID:', payment.id);
+    console.log('Order ID:', payment.order_id);
+    console.log('Amount:', payment.amount);
+    console.log('Currency:', payment.currency);
+    console.log('Status:', payment.status);
+    console.log('Error Code:', payment.error_code);
+    console.log('Error Description:', payment.error_description);
+    console.log('Error Source:', payment.error_source);
+    console.log('Error Step:', payment.error_step);
+    console.log('Error Reason:', payment.error_reason);
+    console.log('Method:', payment.method);
+    console.log('Bank:', payment.bank);
+    console.log('Wallet:', payment.wallet);
+    console.log('VPA:', payment.vpa);
+    console.log('Card ID:', payment.card_id);
+    console.log('Full Payment Object:', JSON.stringify(payment, null, 2));
+    console.log('=== END PAYMENT FAILED DETAILS ===');
     
     const donation = await MoneyDonation.findOne({
       razorpayOrderId: payment.order_id
@@ -87,12 +104,21 @@ const handlePaymentFailed = async (payment) => {
       return;
     }
 
-    // Update donation status
+    // Update donation status with detailed failure info
     donation.paymentStatus = 'failed';
-    donation.failureReason = payment.error_description || 'Payment failed';
+    donation.failureReason = `${payment.error_code}: ${payment.error_description || 'Payment failed'}`;
+    donation.errorDetails = {
+      error_code: payment.error_code,
+      error_description: payment.error_description,
+      error_source: payment.error_source,
+      error_step: payment.error_step,
+      error_reason: payment.error_reason,
+      method: payment.method,
+      bank: payment.bank
+    };
 
     await donation.save();
-    console.log('Donation failure recorded:', donation._id);
+    console.log('Donation failure recorded with details:', donation._id);
   } catch (error) {
     console.error('Error handling payment failed:', error);
   }
