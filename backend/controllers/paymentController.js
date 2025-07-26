@@ -4,62 +4,89 @@ const paymentService = require('../services/paymentService');
 
 // Create payment order
 exports.createPaymentOrder = async (req, res) => {
+  console.log('=== CREATE PAYMENT ORDER START ===');
+  
   try {
+    console.log('Step 1: Request received');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('User from token:', req.user);
+    
     const { amount, donorName, donorEmail, donorPhone, message, isAnonymous } = req.body;
+
+    console.log('Step 2: Extracted form data');
+    console.log({ amount, donorName, donorEmail, donorPhone, message, isAnonymous });
 
     // Validation
     if (!amount || amount < 1) {
+      console.log('Validation failed: Invalid amount:', amount);
       return res.status(400).json({ msg: 'Amount must be at least ₹1' });
     }
 
     if (!donorName || !donorEmail || !donorPhone) {
+      console.log('Validation failed: Missing donor details');
       return res.status(400).json({ msg: 'All donor details are required' });
     }
 
-    // Create preliminary donation record
-    const donation = new MoneyDonation({
-      donor: req.user.id,
-      amount,
-      donorName,
-      donorEmail,
-      donorPhone,
-      message: message || '',
-      isAnonymous: isAnonymous || false,
-      razorpayOrderId: 'temp', // Will be updated after order creation
-      paymentStatus: 'pending'
-    });
+    if (!req.user || !req.user.id) {
+      console.log('Authentication failed: No user found');
+      return res.status(401).json({ msg: 'User not authenticated' });
+    }
 
-    await donation.save();
+    console.log('Step 3: Validation passed');
 
-    // Create Razorpay order
-    const order = await paymentService.createOrder(
-      amount,
-      'INR',
-      donation.receiptNumber
-    );
+    // Test database operations
+    console.log('Step 4: Testing database operations...');
+    
+    try {
+      // Create preliminary donation record
+      const donation = new MoneyDonation({
+        donor: req.user.id,
+        amount,
+        donorName,
+        donorEmail,
+        donorPhone,
+        message: message || '',
+        isAnonymous: isAnonymous || false,
+        razorpayOrderId: 'temp-test-order', // Will be updated after order creation
+        paymentStatus: 'pending'
+      });
 
-    // Update donation with actual order ID
-    donation.razorpayOrderId = order.id;
-    await donation.save();
+      await donation.save();
+      console.log('Step 5: MoneyDonation saved successfully with ID:', donation._id);
+      console.log('Receipt number generated:', donation.receiptNumber);
 
-    res.json({
-      success: true,
-      order: {
-        id: order.id,
-        amount: order.amount,
-        currency: order.currency,
-        receipt: order.receipt
-      },
-      donationId: donation._id,
-      key: process.env.RAZORPAY_KEY_ID
-    });
+      // Return test response with database success
+      return res.json({
+        success: true,
+        message: 'Database operations successful!',
+        user: req.user.id,
+        amount: amount,
+        donationId: donation._id,
+        receiptNumber: donation.receiptNumber,
+        test: true
+      });
+
+    } catch (dbError) {
+      console.log('=== DATABASE ERROR ===');
+      console.error('Database error:', dbError);
+      console.log('=== END DATABASE ERROR ===');
+      throw dbError; // This will be caught by the outer try-catch
+    }
+
 
   } catch (error) {
-    console.error('Create payment order error:', error);
+    console.log('=== ERROR IN CREATE PAYMENT ORDER ===');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Full error object:', error);
+    console.log('=== END ERROR LOG ===');
+    
     res.status(500).json({ 
       success: false, 
       msg: 'Failed to create payment order',
-      error: error.message 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };

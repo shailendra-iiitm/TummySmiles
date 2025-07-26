@@ -11,6 +11,17 @@ class PaymentService {
 
   async createOrder(amount, currency = 'INR', receiptId) {
     try {
+      console.log('PaymentService.createOrder called with:', { amount, currency, receiptId });
+      
+      // Validate inputs
+      if (!amount || amount <= 0) {
+        throw new Error('Invalid amount provided');
+      }
+      
+      if (!receiptId) {
+        throw new Error('Receipt ID is required');
+      }
+
       const options = {
         amount: amount * 100, // Razorpay expects amount in paise
         currency,
@@ -21,11 +32,15 @@ class PaymentService {
         }
       };
 
+      console.log('Creating Razorpay order with options:', options);
       const order = await this.razorpay.orders.create(options);
+      console.log('Razorpay order created successfully:', order);
       return order;
     } catch (error) {
-      console.error('Error creating Razorpay order:', error);
-      throw new Error('Failed to create payment order');
+      console.error('Error creating Razorpay order - Full details:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      throw new Error(`Failed to create payment order: ${error.message}`);
     }
   }
 

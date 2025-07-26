@@ -14,6 +14,26 @@ const {
 // @access  Private (Donor)
 router.post('/create-order', authenticate, createPaymentOrder);
 
+// @route   POST /api/payment/test
+// @desc    Test endpoint for debugging payment issues
+// @access  Private (Donor)
+router.post('/test', authenticate, (req, res) => {
+  try {
+    console.log('Test endpoint hit');
+    console.log('User:', req.user);
+    console.log('Body:', req.body);
+    res.json({ 
+      success: true, 
+      message: 'Test endpoint working',
+      user: req.user,
+      body: req.body
+    });
+  } catch (error) {
+    console.error('Test endpoint error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // @route   POST /api/payment/verify
 // @desc    Verify payment and update donation status
 // @access  Private (Donor)
