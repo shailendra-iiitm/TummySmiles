@@ -47,7 +47,7 @@ exports.createPaymentOrder = async (req, res) => {
         donorPhone,
         message: message || '',
         isAnonymous: isAnonymous || false,
-        razorpayOrderId: 'temp-test-order', // Will be updated after order creation
+        razorpayOrderId: null, // Will be updated after Razorpay order creation
         paymentStatus: 'pending'
       });
 
@@ -55,15 +55,25 @@ exports.createPaymentOrder = async (req, res) => {
       console.log('Step 5: MoneyDonation saved successfully with ID:', donation._id);
       console.log('Receipt number generated:', donation.receiptNumber);
 
-      // Return test response with database success
-      return res.json({
-        success: true,
-        message: 'Database operations successful!',
-        user: req.user.id,
-        amount: amount,
+      // Step 6: Create Razorpay order
+      console.log('Step 6: Creating Razorpay order...');
+      const razorpayOrder = await paymentService.createOrder(
+        amount, // Amount in rupees (service will convert to paise)
+        'INR',
+        donation.receiptNumber
+      );
+      console.log('Step 7: Razorpay order created:', razorpayOrder.id);
+
+      // Update donation with actual Razorpay order ID
+      donation.razorpayOrderId = razorpayOrder.id;
+      await donation.save();
+      console.log('Step 8: Updated donation with Razorpay order ID');
+
+      // Step 9: Send response with order details
+      res.status(200).json({
+        order: razorpayOrder,
         donationId: donation._id,
-        receiptNumber: donation.receiptNumber,
-        test: true
+        key: process.env.RAZORPAY_KEY_ID
       });
 
     } catch (dbError) {

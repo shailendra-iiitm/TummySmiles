@@ -63,9 +63,30 @@ const MoneyDonation = () => {
         return;
       }
 
+      console.log('Creating payment order with data:', formData);
+      
       // Create payment order
       const orderResponse = await api.post('/payment/create-order', formData);
+      console.log('Order response:', orderResponse.data);
+      
+      // Check if this is a test response
+      if (orderResponse.data.test) {
+        if (orderResponse.data.message === 'Database operations successful!') {
+          toast.success('✅ Database test successful! Ready for Razorpay integration.');
+        } else {
+          toast.success('✅ Payment endpoint working! Test successful.');
+        }
+        console.log('Test response received:', orderResponse.data);
+        setLoading(false);
+        return;
+      }
+      
+      // Only try to destructure order data if not a test response
       const { order, donationId, key } = orderResponse.data;
+      
+      if (!order || !order.amount) {
+        throw new Error('Invalid order response from server');
+      }
 
       // Razorpay options
       const options = {
@@ -122,8 +143,13 @@ const MoneyDonation = () => {
       rzp.open();
 
     } catch (error) {
-      console.error('Payment initiation failed:', error);
-      toast.error(error.response?.data?.msg || 'Payment failed');
+      console.error('Payment initiation failed - Full error:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      const errorMessage = error.response?.data?.msg || error.response?.data?.error || error.message || 'Payment failed';
+      toast.error(`Payment failed: ${errorMessage}`);
       setLoading(false);
     }
   };
