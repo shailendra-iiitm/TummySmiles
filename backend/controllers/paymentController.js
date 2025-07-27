@@ -5,6 +5,7 @@ const paymentService = require('../services/paymentService');
 // Create payment order
 exports.createPaymentOrder = async (req, res) => {
   console.log('=== CREATE PAYMENT ORDER START ===');
+  console.log('Controller loaded successfully - no JSX here!');
   
   try {
     console.log('Step 1: Request received');
@@ -58,11 +59,11 @@ exports.createPaymentOrder = async (req, res) => {
       // Step 6: Create Razorpay order
       console.log('Step 6: Creating Razorpay order...');
       
-      // Check if Razorpay is configured
+      // Check if Razorpay credentials are configured
       if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-        console.log('Razorpay not configured - sending test response');
+        console.log('Razorpay credentials not found - falling back to test mode');
         
-        // For development/testing when Razorpay is not configured
+        // Fallback to test mode if credentials are missing
         const testOrder = {
           id: `test_order_${Date.now()}`,
           amount: amount * 100,
@@ -77,18 +78,19 @@ exports.createPaymentOrder = async (req, res) => {
         return res.status(200).json({
           order: testOrder,
           donationId: donation._id,
-          key: 'test_key',
+          key: 'test_key_id',
           test: true,
-          message: 'Razorpay not configured - test mode'
+          message: 'Razorpay credentials not configured - using test mode'
         });
       }
       
+      // Create real Razorpay order
       const razorpayOrder = await paymentService.createOrder(
         amount, // Amount in rupees (service will convert to paise)
         'INR',
         donation.receiptNumber
       );
-      console.log('Step 7: Razorpay order created:', razorpayOrder.id);
+      console.log('Step 7: Razorpay order created successfully:', razorpayOrder.id);
 
       // Update donation with actual Razorpay order ID
       donation.razorpayOrderId = razorpayOrder.id;
