@@ -11,7 +11,9 @@ const ModernDonorDashboard = () => {
     totalDonations: 0,
     completedDonations: 0,
     pendingDonations: 0,
-    impactScore: 0
+    impactScore: 0,
+    totalMoneyDonated: 0,
+    totalMoneyDonations: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -21,25 +23,35 @@ const ModernDonorDashboard = () => {
 
   const fetchDonorData = async () => {
     try {
-      const response = await api.get('/donor/mine');
+      // Fetch food donations
+      const donationsResponse = await api.get('/donor/mine');
+      setDonations(donationsResponse.data);
       
-      setDonations(response.data);
+      // Fetch money donation stats
+      const moneyStatsResponse = await api.get('/payment/stats');
       
-      // Calculate stats
-      const total = response.data.length;
-      const completed = response.data.filter(d => d.status === 'collected').length;
-      const pending = response.data.filter(d => ['pending', 'accepted'].includes(d.status)).length;
+      // Calculate food donation stats
+      const total = donationsResponse.data.length;
+      const completed = donationsResponse.data.filter(d => d.status === 'collected').length;
+      const pending = donationsResponse.data.filter(d => ['pending', 'accepted'].includes(d.status)).length;
       const impact = completed * 10; // Simple impact scoring
+      
+      // Extract money donation stats
+      const moneyStats = moneyStatsResponse.data.stats;
+      const totalMoneyDonated = moneyStats.totalAmountDonated || 0;
+      const totalMoneyDonations = moneyStats.totalDonations || 0;
       
       setStats({
         totalDonations: total,
         completedDonations: completed,
         pendingDonations: pending,
-        impactScore: impact
+        impactScore: impact,
+        totalMoneyDonated: totalMoneyDonated,
+        totalMoneyDonations: totalMoneyDonations
       });
       
       setLoading(false);
-      toast.success(`✅ Loaded ${total} donations successfully`);
+      toast.success(`✅ Loaded ${total} food donations and ₹${totalMoneyDonated} money donations successfully`);
     } catch (error) {
       console.error('❌ Failed to fetch donor data:', error);
       console.error('Error details:', error.response?.data);
@@ -108,7 +120,7 @@ const ModernDonorDashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
           <div className="interactive-card glass-morphism p-6 rounded-2xl stagger-fade-in">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center">
@@ -177,6 +189,42 @@ const ModernDonorDashboard = () => {
               <div 
                 className="bg-gradient-to-r from-purple-400 to-pink-400 h-2 rounded-full transition-all duration-1000"
                 style={{ width: `${Math.min((stats.impactScore / 100) * 100, 100)}%` }}
+              ></div>
+            </div>
+          </div>
+
+          <div className="interactive-card glass-morphism p-6 rounded-2xl stagger-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center">
+                <span className="text-white text-xl">💰</span>
+              </div>
+              <div className="text-right">
+                <div className="text-xl lg:text-2xl font-bold text-gray-900">₹{stats.totalMoneyDonated.toLocaleString()}</div>
+                <div className="text-xs lg:text-sm text-gray-600">Money Donated</div>
+              </div>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-yellow-400 to-orange-400 h-2 rounded-full transition-all duration-1000"
+                style={{ width: `${Math.min((stats.totalMoneyDonated / 10000) * 100, 100)}%` }}
+              ></div>
+            </div>
+          </div>
+
+          <div className="interactive-card glass-morphism p-6 rounded-2xl stagger-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full flex items-center justify-center">
+                <span className="text-white text-xl">🎁</span>
+              </div>
+              <div className="text-right">
+                <div className="text-xl lg:text-2xl font-bold text-gray-900">{stats.totalMoneyDonations}</div>
+                <div className="text-xs lg:text-sm text-gray-600">Money Donations</div>
+              </div>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-teal-400 to-cyan-400 h-2 rounded-full transition-all duration-1000"
+                style={{ width: `${Math.min((stats.totalMoneyDonations / 10) * 100, 100)}%` }}
               ></div>
             </div>
           </div>

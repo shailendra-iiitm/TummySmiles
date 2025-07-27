@@ -46,6 +46,7 @@ const login = async (req, res) => {
 
   const tokenPayload = {
     id: user._id,
+    name: user.name,
     role: user.role,
     ...(user.role === 'agent' || user.role === 'donor' ? { pincode: user.pincode } : {})
   };

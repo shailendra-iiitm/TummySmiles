@@ -6,7 +6,9 @@ const {
   verifyPayment,
   handlePaymentFailure,
   getMyMoneyDonations,
-  getMoneyDonationStats
+  getMoneyDonationStats,
+  getAllMoneyDonations,
+  getMoneyDonationAnalytics
 } = require('../controllers/paymentController');
 
 // @route   POST /api/payment/create-order
@@ -53,5 +55,15 @@ router.get('/my-donations', authenticate, getMyMoneyDonations);
 // @desc    Get user's money donation statistics
 // @access  Private (Donor)
 router.get('/stats', authenticate, getMoneyDonationStats);
+
+// @route   GET /api/payment/admin/all
+// @desc    Get all money donations (Admin only)
+// @access  Private (Admin)
+router.get('/admin/all', authenticate, getAllMoneyDonations);
+
+// @route   GET /api/payment/admin/analytics
+// @desc    Get money donation analytics (Admin only)
+// @access  Private (Admin)
+router.get('/admin/analytics', authenticate, getMoneyDonationAnalytics);
 
 module.exports = router;
