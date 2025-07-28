@@ -10,7 +10,7 @@ const Footer = () => {
               <div className="bg-gradient-to-br from-orange-400 to-red-500 p-2 rounded-full">
                 <span className="text-white text-xl">😊</span>
               </div>
-              <h3 className="text-2xl font-bold">Tummy Smiles</h3>
+              <h3 className="text-2xl font-bold">Tummy Smiles  </h3>
             </div>
             <p className="text-gray-400">
               Spreading joy through food, Generating Smiles. Building stronger, happier communities together.
