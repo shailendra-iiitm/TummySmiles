@@ -57,6 +57,32 @@ exports.createPaymentOrder = async (req, res) => {
 
       // Step 6: Create Razorpay order
       console.log('Step 6: Creating Razorpay order...');
+      
+      // Check if Razorpay is configured
+      if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+        console.log('Razorpay not configured - sending test response');
+        
+        // For development/testing when Razorpay is not configured
+        const testOrder = {
+          id: `test_order_${Date.now()}`,
+          amount: amount * 100,
+          currency: 'INR',
+          receipt: donation.receiptNumber,
+          status: 'created'
+        };
+        
+        donation.razorpayOrderId = testOrder.id;
+        await donation.save();
+        
+        return res.status(200).json({
+          order: testOrder,
+          donationId: donation._id,
+          key: 'test_key',
+          test: true,
+          message: 'Razorpay not configured - test mode'
+        });
+      }
+      
       const razorpayOrder = await paymentService.createOrder(
         amount, // Amount in rupees (service will convert to paise)
         'INR',
