@@ -357,12 +357,19 @@ const AdminDashboard = () => {
                 <option value="all">🔍 All Donations</option>
                 <option value="pending">⏳ Pending</option>
                 <option value="accepted">✅ Accepted</option>
-                <option value="agent_rejected">❌ Agent Rejected</option>
-                <option value="not_found">🔍 Not Found</option>
+                <option value="agent_accepted">👤 Agent Accepted</option>
                 <option value="rejected">❌ Rejected</option>
+                <option value="agent_rejected">👤❌ Agent Rejected</option>
                 <option value="collected">📦 Collected</option>
+                <option value="not_found">🔍 Not Found</option>
                 <option value="delivered">🎉 Delivered</option>
               </select>
+              <div className="text-sm text-gray-500">
+                {statusFilter === 'all' 
+                  ? `Showing all ${donations.length} donations (delivered shown last)`
+                  : `Showing ${donations.length} ${statusFilter} donations`
+                }
+              </div>
             </div>
 
             <div className="grid gap-6">
@@ -909,45 +916,136 @@ const AdminDashboard = () => {
         {/* ----------------- Money Donations Management Tab ----------------- */}
         {activeTab === "money" && (
           <>
-            {/* Money Donation Stats Cards */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            {/* Financial Overview Cards */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
               <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100">Total Money Donations</p>
+                    <p className="text-green-100">Total Donations</p>
                     <p className="text-3xl font-bold">{moneyDonationStats.totalStats?.reduce((acc, stat) => acc + (stat.count || 0), 0) || 0}</p>
                   </div>
                   <span className="text-4xl opacity-80">💰</span>
                 </div>
               </div>
               
-              <div className="bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-xl p-6 shadow-lg">
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-yellow-100">Total Amount Collected</p>
+                    <p className="text-blue-100">Total Revenue</p>
                     <p className="text-3xl font-bold">₹{moneyDonationStats.totalStats?.find(stat => stat._id === 'completed')?.totalAmount?.toLocaleString() || 0}</p>
                   </div>
                   <span className="text-4xl opacity-80">💳</span>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
+              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl p-6 shadow-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-100">Completed Donations</p>
+                    <p className="text-emerald-100">Successful</p>
                     <p className="text-3xl font-bold">{moneyDonationStats.totalStats?.find(stat => stat._id === 'completed')?.count || 0}</p>
                   </div>
                   <span className="text-4xl opacity-80">✅</span>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-6 shadow-lg">
+              <div className="bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl p-6 shadow-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-100">Failed Donations</p>
+                    <p className="text-red-100">Failed</p>
                     <p className="text-3xl font-bold">{moneyDonationStats.totalStats?.find(stat => stat._id === 'failed')?.count || 0}</p>
                   </div>
                   <span className="text-4xl opacity-80">❌</span>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-amber-500 to-orange-500 text-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-amber-100">Pending</p>
+                    <p className="text-3xl font-bold">{moneyDonationStats.totalStats?.find(stat => stat._id === 'pending')?.count || 0}</p>
+                  </div>
+                  <span className="text-4xl opacity-80">⏳</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Analytics Dashboard */}
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              {/* Success Rate Card */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">📊 Success Rate Analytics</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Success Rate</span>
+                    <span className="text-2xl font-bold text-green-600">
+                      {moneyDonationStats.totalStats?.length > 0 ? 
+                        Math.round(((moneyDonationStats.totalStats.find(stat => stat._id === 'completed')?.count || 0) / 
+                        moneyDonationStats.totalStats.reduce((acc, stat) => acc + stat.count, 0)) * 100) : 0}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-green-400 to-green-600 h-3 rounded-full transition-all duration-1000"
+                      style={{ 
+                        width: `${moneyDonationStats.totalStats?.length > 0 ? 
+                          Math.round(((moneyDonationStats.totalStats.find(stat => stat._id === 'completed')?.count || 0) / 
+                          moneyDonationStats.totalStats.reduce((acc, stat) => acc + stat.count, 0)) * 100) : 0}%`
+                      }}
+                    ></div>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Higher success rate indicates better payment experience
+                  </div>
+                </div>
+              </div>
+
+              {/* Average Donation Amount */}
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">💵 Average Donation</h3>
+                <div className="space-y-4">
+                  <div className="text-3xl font-bold text-blue-600">
+                    ₹{moneyDonationStats.totalStats?.find(stat => stat._id === 'completed') ? 
+                      Math.round((moneyDonationStats.totalStats.find(stat => stat._id === 'completed').totalAmount || 0) / 
+                      (moneyDonationStats.totalStats.find(stat => stat._id === 'completed').count || 1)).toLocaleString() : 0}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Average amount per successful donation
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-green-500">↗️</span>
+                    <span className="text-sm text-gray-600">Track donation patterns</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Filters */}
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <h3 className="text-lg font-bold text-gray-900">🔍 Financial Filters</h3>
+                <div className="flex flex-wrap gap-3">
+                  <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="all">All Status</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                  <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="year">This Year</option>
+                  </select>
+                  <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="all">All Amounts</option>
+                    <option value="small">₹1 - ₹500</option>
+                    <option value="medium">₹501 - ₹2000</option>
+                    <option value="large">₹2000+</option>
+                  </select>
+                  <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    📊 Export Report
+                  </button>
                 </div>
               </div>
             </div>
@@ -1591,4 +1689,5 @@ const AdminDashboard = () => {
   );
 };
 
-export default   AdminDashboard;
+export default AdminDashboard;
+

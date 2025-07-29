@@ -17,7 +17,7 @@ const donationSchema = new mongoose.Schema({
   lat: { type: Number, default: null },
   lng: { type: Number, default: null }
   },
-  status: { type: String, enum: ['pending', 'accepted', 'rejected', 'collected','agent_rejected', 'not_found','agent_accepted'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'accepted', 'rejected', 'collected','agent_rejected', 'not_found','agent_accepted', 'delivered'], default: 'pending' },
   agent: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
 }, { timestamps: true });
 

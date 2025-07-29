@@ -7,9 +7,35 @@ const { findNearestAgents } = require('../utils/distanceCalculator');
 // For Viewing all donations with optional filters
 exports.getAllDonations = async (req, res) => {
   try {
-    const donations = await Donation.find().populate('donor').populate('agent');
-    res.json(donations);
-  } catch {
+    const { status } = req.query;
+    let query = {};
+    
+    // If status filter is provided, filter by status
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+    
+    // Fetch donations with custom sorting - delivered at the bottom
+    const donations = await Donation.find(query)
+      .populate('donor')
+      .populate('agent')
+      .sort({
+        // Custom sort: delivered status goes to bottom, rest by creation date
+        status: 1, // This will put 'delivered' last alphabetically
+        createdAt: -1 // Recent first within same status
+      });
+    
+    // Further sort to ensure delivered donations are at the bottom (final status)
+    const sortedDonations = donations.sort((a, b) => {
+      if (a.status === 'delivered' && b.status !== 'delivered') return 1;
+      if (a.status !== 'delivered' && b.status === 'delivered') return -1;
+      // If both same status, sort by creation date (newest first)
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    
+    res.json(sortedDonations);
+  } catch (error) {
+    console.error('Error fetching donations:', error);
     res.status(500).json({ msg: "Failed to fetch donations" });
   }
 };
@@ -21,20 +47,39 @@ exports.getDonationById = async (req, res) => {
   res.json(donation);
 };
 
-// For Viewing donations by status (pending, accepted, etc.)
+// For Viewing donations by status (pending, assigned, collected, delivered, etc.)
 exports.getDonationByStatus = async (req, res) => {
-  const { status } = req.query;
-  const validStatuses = ['pending', 'accepted', 'rejected', 'collected'];
-  if (!validStatuses.includes(status)) return res.status(400).json({ msg: "Invalid status" });
+  try {
+    const { status } = req.query;
+          const validStatuses = ['pending', 'accepted', 'rejected', 'collected', 'delivered'];
+    
+    if (!status) {
+      return res.status(400).json({ msg: "Status parameter is required" });
+    }
+    
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        msg: "Invalid status", 
+        validStatuses: validStatuses 
+      });
+    }
 
-  const donations = await Donation.find({ status }).populate('donor').populate('agent');
-  res.json(donations);
+    const donations = await Donation.find({ status })
+      .populate('donor')
+      .populate('agent')
+      .sort({ createdAt: -1 }); // Most recent first within status
+    
+    res.json(donations);
+  } catch (error) {
+    console.error('Error fetching donations by status:', error);
+    res.status(500).json({ msg: "Failed to fetch donations by status" });
+  }
 };
 
 // For Updating donation status
 exports.updateDonationStatus = async (req, res) => {
   const { status } = req.body;
-  const validStatuses = ['pending', 'accepted', 'rejected', 'collected'];
+  const validStatuses = ['pending', 'accepted', 'rejected', 'collected', 'delivered'];
   if (!validStatuses.includes(status)) return res.status(400).json({ msg: "Invalid status" });
 
   const donation = await Donation.findByIdAndUpdate(req.params.id, { status }, { new: true });
