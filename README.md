@@ -300,10 +300,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 💌 **Get in Touch**
 
-- **📧 Email**: hello@tummysmiles.com
-- **🐦 Twitter**: @TummySmiles
-- **📱 Phone**: 1-800-SMILES
-- **🌐 Website**: https://tummysmiles.com
+- **📧 Email**: shailendra.iiitsm@gmail.com
+- **🐦 Twitter**: --
+- **📱 Phone**: 8604434817
+- **🌐 Website**: https://tummy-smiles.vercel.app
 
 ---
 
